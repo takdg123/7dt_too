@@ -36,7 +36,7 @@ function TargetForm() {
     const [ra, setRa] = useState('');
     const [dec, setDec] = useState('');
     const [exposure, setExposure] = useState('5');
-    const [mode, setMode] = useState('Spec'); 
+    const [obsmode, setObsmode] = useState('Spec'); 
     const [comments, setComments] = useState('');
     const [abortObservation, setAbortObservation] = useState(false); // Track checkbox state
 
@@ -73,13 +73,13 @@ function TargetForm() {
     }, []);
 
     useEffect(() => {
-        if (mode === 'Spec') {
+        if (obsmode === 'Spec') {
             axios
                 .get('http://127.0.0.1:5000/api/spec-options')
                 .then((response) => setSpecFileOptions(response.data))
                 .catch((error) => console.error('Error fetching spec file options:', error));
         }
-    }, [mode]);
+    }, [obsmode]);
 
     useEffect(() => {
         if (selectedSpecFile) {
@@ -139,7 +139,7 @@ function TargetForm() {
         }
 
         return () => wavelengthChart?.destroy();
-    }, [wavelengths, mode, isCollapsed]);
+    }, [wavelengths, obsmode, isCollapsed]);
 
     const handleSubmit = async () => {
         try {
@@ -148,12 +148,12 @@ function TargetForm() {
                 ra,
                 dec,
                 exposure,
-                mode,
+                obsmode,
                 comments,
                 abortObservation,
                 ...detailedSettings,
-                ...(mode === 'Deep' && { selectedFilters, selectedTelNumber }),
-                ...(mode === 'Spec' && { selectedSpecFile })
+                ...(obsmode === 'Deep' && { selectedFilters, selectedTelNumber }),
+                ...(obsmode === 'Spec' && { selectedSpecFile })
             });
             setIsDialogOpen(false); // Close dialog after submission
         } catch (error) {
@@ -274,11 +274,11 @@ function TargetForm() {
                     />
                 </div>
                 <div className="group-container" style={{justifyContent: 'space-between'}}>
-                    <label className="default-label">Mode:</label>
+                    <label className="default-label">ObsMode:</label>
                     <RadioGroup
                         row
-                        value={mode}
-                        onChange={(e) => setMode(e.target.value)}
+                        value={obsmode}
+                        onChange={(e) => setObsmode(e.target.value)}
                         className="radio-group"
                     >   
                         <FormControlLabel
@@ -302,7 +302,7 @@ function TargetForm() {
 
                 {!isCollapsed && (
                     <>
-                    {mode === 'Spec' && (
+                    {obsmode === 'Spec' && (
                         <SpecMode
                             specFileOptions={specFileOptions}
                             selectedSpecFile={selectedSpecFile}
@@ -311,7 +311,7 @@ function TargetForm() {
                             filters={filters}
                         />
                     )}
-                    {mode === 'Deep' && (
+                    {obsmode === 'Deep' && (
                         <DeepMode
                             selectedFilters={selectedFilters}
                             handleCheckboxChange={handleCheckboxChange}
@@ -383,9 +383,9 @@ function TargetForm() {
                     <p><strong>Dec.:</strong> {dec}</p>
                     <p><strong>Exposure:</strong> {exposure} seconds</p>
                     <p>
-                        <strong>Mode:</strong> {mode}{" "}
-                        {mode === "Spec" && `(${selectedSpecFile})`}
-                        {mode === "Deep" && `(Filters: ${selectedFilters.join(", ")} | Telescopes: ${selectedTelNumber})`}
+                        <strong>ObsMode:</strong> {obsmode}{" "}
+                        {obsmode === "Spec" && `(${selectedSpecFile})`}
+                        {obsmode === "Deep" && `(Filters: ${selectedFilters.join(", ")} | Telescopes: ${selectedTelNumber})`}
                     </p>
                     <p><strong>Comments:</strong> {comments}</p>
                     <p><strong>Abort Current Observation:</strong> {abortObservation ? 'Yes' : 'No'}</p>

@@ -17,42 +17,50 @@ def send_email():
     try:
         data = request.json
 
-        mode = data.get('mode')
+        obsmode = data.get('obsmode')
 
-        if mode == "Spec":
+        if obsmode == "Spec":
             details = data.get('selectedSpecFile')
-        elif mode == "Deep":
+        elif obsmode == "Deep":
             details = ", ".join(list(data.get('selectedFilters')))
             details = details+f" / {data.get('selectedTelNumber')}"
 
 
         # Construct the email body
+    
         email_body = f"""
-        New ToO Request Submitted:
+        ================================
+        New ToO Request Submitted
+        ================================
 
-        Target: {data.get('target')}
-        R.A.: {data.get('ra')}
-        Dec.: {data.get('dec')}
-        Exposure (minutes): {data.get('exposure')}
-        Mode: {data.get('mode')} ({details})
-        Abort Current Observation: {data.get('abortObservation')}
+        **Observation Information**
+        ----------------------
+        - Target Name: {data.get('target')}
+        - Right Ascension (R.A.): {data.get('ra')}
+        - Declination (Dec.): {data.get('dec')}
+        - Total Exposure Time: {data.get('exposure')} seconds
+        - Obsmode: {data.get('obsmode')} ({details})
 
-        Detailed Settings:
-        Single Frame Exposure (seconds): {data.get('singleFrameExposure')}
-        # of Images (counts): {data.get('imageCount')}
-        Priority: {data.get('priority')}
-        Gain: {data.get('gain')}
-        Binning: {data.get('binning')}
-        Observation Start Time: {data.get('obsStartTime')}
+        **Detailed Settings**
+        --------------------
+        - Abort Current Observation: {data.get('abortObservation')}
+        - Priority: {data.get('priority')}
+        - Single Frame Exposure: {data.get('singleFrameExposure')} seconds
+        - Number of Images: {data.get('imageCount')} counts
+        - Gain: {data.get('gain')}
+        - Binning: {data.get('binning')}
+        - Observation Start Time: {data.get('obsStartTime')}
+        - Comments: {data.get('comments')}
 
-        Comments: 
-        {data.get('comments', 'No additional comments provided')}
-
+        ================================
         Please take necessary actions.
+        ================================
         """
 
         # Save the entered data as a JSON file
-        file_path = os.path.join(os.getcwd(), "too_request.json")
+        now_str = datetime.now().strftime("%Y%m%d%H%M%S")
+        file_name = f"too_request_{now_str}.json"
+        file_path = os.path.join(os.getcwd(), file_name)
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
 
@@ -63,7 +71,7 @@ def send_email():
             body=email_body
         )
         with open(file_path, "rb") as file:
-            msg.attach("too_request.json", "application/json", file.read())
+            msg.attach(file_name, "application/json", file.read())
 
         mail.send(msg)
 
