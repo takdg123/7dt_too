@@ -147,7 +147,7 @@ function TargetForm() {
                 target,
                 ra,
                 dec,
-                exposure,
+                exposure*60,
                 obsmode,
                 comments,
                 abortObservation,

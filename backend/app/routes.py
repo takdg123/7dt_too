@@ -6,6 +6,7 @@ import os
 from astropy.io import fits
 import json
 from glob import glob
+from datetime import datetime
 
 api_bp = Blueprint('api', __name__)
 
@@ -20,10 +21,12 @@ def send_email():
         obsmode = data.get('obsmode')
 
         if obsmode == "Spec":
-            details = data.get('selectedSpecFile')
+            details1 = f"- Specmode: {data.get('selectedSpecFile')}"
+            details2 = ""
         elif obsmode == "Deep":
-            details = ", ".join(list(data.get('selectedFilters')))
-            details = details+f" / {data.get('selectedTelNumber')}"
+            selected_filters = ",".join(list(data.get('selectedFilters')))
+            details1 = f"- Filters: {selected_filters}"
+            details2 = f"- NumberofTelescopes: {data.get('selectedTelNumber')}"
 
 
         # Construct the email body
@@ -39,7 +42,9 @@ def send_email():
         - Right Ascension (R.A.): {data.get('ra')}
         - Declination (Dec.): {data.get('dec')}
         - Total Exposure Time: {data.get('exposure')} seconds
-        - Obsmode: {data.get('obsmode')} ({details})
+        - Obsmode: {data.get('obsmode')}
+            {details1}
+            {details2}
 
         **Detailed Settings**
         --------------------
