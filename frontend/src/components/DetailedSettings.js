@@ -35,7 +35,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings, exposure, set
 
     // Automatically calculate `exposure` based on `singleFrameExposure` and `imageCount`
     useEffect(() => {
-        const calculatedExposure = singleFrameExposure * imageCount / 60;
+        const calculatedExposure = singleFrameExposure * imageCount;
         if (exposure !== calculatedExposure) {
             setExposure(calculatedExposure);
         }

@@ -3,6 +3,7 @@ import axios from 'axios';
 import '../styles/TargetForm.css';
 import {
     Autocomplete,
+    Alert,
     TextField,
     Button,
     RadioGroup,
@@ -13,6 +14,8 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    Snackbar,
+    CircularProgress,
 } from '@mui/material';
 
 import {
@@ -35,22 +38,26 @@ function TargetForm() {
     const [target, setTarget] = useState('');
     const [ra, setRa] = useState('');
     const [dec, setDec] = useState('');
-    const [exposure, setExposure] = useState('5');
+    const [exposure, setExposure] = useState('300');
     const [obsmode, setObsmode] = useState('Spec'); 
     const [comments, setComments] = useState('');
     const [abortObservation, setAbortObservation] = useState(false); // Track checkbox state
 
-    const [specFileOptions, setSpecFileOptions] = useState(['specall.specmode']);
-    const [selectedSpecFile, setSelectedSpecFile] = useState('specall.specmode');
-    const [isCustomTarget, setIsCustomTarget] = useState(true);
     const [wavelengths, setWavelengths] = useState([]);
     const [filters, setFilters] = useState([]);
+    const [specFileOptions, setSpecFileOptions] = useState(['specall.specmode']);
+    const [selectedSpecFile, setSelectedSpecFile] = useState('specall.specmode');
     const [selectedFilters, setSelectedFilters] = useState(['g']); // For checkboxes
     const [selectedTelNumber, setSelectedTelNumber] = useState(10); // For dropdown
 
+    const [isCustomTarget, setIsCustomTarget] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(true); // Collapse state for mode options
     const [isDetailCollapsed, setIsDetailCollapsed] = useState(true); // Collapse state for mode options
     const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const [detailedSettings, setDetailedSettings] = useState({
         singleFrameExposure: 60, // Default 60 seconds
@@ -141,13 +148,25 @@ function TargetForm() {
         return () => wavelengthChart?.destroy();
     }, [wavelengths, obsmode, isCollapsed]);
 
-    const handleSubmit = async () => {
+
+     const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Validate required fields
+        if (!target || !ra || !dec) {
+            setError('Target, R.A., and Dec. are required fields.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
         try {
             await axios.post('http://127.0.0.1:5000/api/send_email', {
                 target,
                 ra,
                 dec,
-                exposure*60,
+                exposure,
                 obsmode,
                 comments,
                 abortObservation,
@@ -155,9 +174,13 @@ function TargetForm() {
                 ...(obsmode === 'Deep' && { selectedFilters, selectedTelNumber }),
                 ...(obsmode === 'Spec' && { selectedSpecFile })
             });
-            setIsDialogOpen(false); // Close dialog after submission
+            setSuccessMessage('Email sent successfully!');
+            setError('');
+            setIsDialogOpen(false); // Close dialog on success
         } catch (error) {
-            console.error('Error sending email:', error);
+            setError('Failed to send the email. Please try again.');
+        } finally {
+            setIsLoading(false); // Stop loading
         }
     };
 
@@ -177,7 +200,7 @@ function TargetForm() {
 
     const handleExposureChange = (newExposure) => {
         const { imageCount } = detailedSettings;
-        const newSingleFrameExposure = newExposure / imageCount * 60;
+        const newSingleFrameExposure = newExposure / imageCount;
         setDetailedSettings((prev) => ({
             ...prev,
             singleFrameExposure: newSingleFrameExposure,
@@ -259,7 +282,7 @@ function TargetForm() {
                 <div className="group-container">
                     <label className="default-label">Exposure:</label>
                     <TextField
-                        label="minutes"
+                        label="seconds"
                         variant="outlined"
                         value={exposure}
                         onChange={(e) => handleExposureChange(e.target.value || 0)}
@@ -400,11 +423,46 @@ function TargetForm() {
                     <Button onClick={toggleDialog} color="secondary">
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit} variant="contained" color="primary">
-                        Confirm
+                    <Button 
+                        onClick={handleSubmit} 
+                        variant="contained" 
+                        color="primary"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Confirm'}
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Loading Message */}
+            {isLoading && (
+                <Snackbar open>
+                    <Alert severity="info">
+                        Sending email... Please wait.
+                    </Alert>
+                </Snackbar>
+            )}
+
+
+            {/* Success Message */}
+            {successMessage && (
+                <Snackbar open autoHideDuration={6000} onClose={() => setSuccessMessage('')}>
+                    <Alert severity="success" onClose={() => setSuccessMessage('')}>
+                        {successMessage}
+                    </Alert>
+                </Snackbar>
+            )}
+
+            {/* Error Message */}
+            {error && (
+                <Snackbar open autoHideDuration={6000} onClose={() => setError('')}>
+                    <Alert severity="error" onClose={() => setError('')}>
+                        {error}
+                    </Alert>
+                </Snackbar>
+            )}
+
+
         </div>
     );
 }

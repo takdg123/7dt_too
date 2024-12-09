@@ -7,9 +7,9 @@ class Config:
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = '7dt.observation.broker@gmail.com'  # Replace with your email
-    MAIL_PASSWORD = 'cqarlzcofgrsgdlh'  # Use app password for Gmail
-    MAIL_DEFAULT_SENDER = ('7DT Observation Alert', '7dt.observation.broker@gmail.com')  # Display name and sender
+    MAIL_USERNAME = os.getenv("SDT_MAIL")
+    MAIL_PASSWORD = os.getenv("SDT_PASSWORD")
+    MAIL_DEFAULT_SENDER = ('7DT Observation Alert', os.getenv("SDT_SENDER")) 
 
 
 class ProductionConfig(Config):

@@ -13,81 +13,6 @@ api_bp = Blueprint('api', __name__)
 DATA_FOLDER = os.getenv('DATA_FOLDER', './data')
 
 
-@api_bp.route('/api/send_email', methods=['POST'])
-def send_email():
-    try:
-        data = request.json
-
-        obsmode = data.get('obsmode')
-
-        if obsmode == "Spec":
-            details1 = f"- Specmode: {data.get('selectedSpecFile')}"
-            details2 = ""
-        elif obsmode == "Deep":
-            selected_filters = ",".join(list(data.get('selectedFilters')))
-            details1 = f"- Filters: {selected_filters}"
-            details2 = f"- NumberofTelescopes: {data.get('selectedTelNumber')}"
-
-
-        # Construct the email body
-    
-        email_body = f"""
-        ================================
-        New ToO Request Submitted
-        ================================
-
-        **Observation Information**
-        ----------------------
-        - Target Name: {data.get('target')}
-        - Right Ascension (R.A.): {data.get('ra')}
-        - Declination (Dec.): {data.get('dec')}
-        - Total Exposure Time: {data.get('exposure')} seconds
-        - Obsmode: {data.get('obsmode')}
-            {details1}
-            {details2}
-
-        **Detailed Settings**
-        --------------------
-        - Abort Current Observation: {data.get('abortObservation')}
-        - Priority: {data.get('priority')}
-        - Single Frame Exposure: {data.get('singleFrameExposure')} seconds
-        - Number of Images: {data.get('imageCount')} counts
-        - Gain: {data.get('gain')}
-        - Binning: {data.get('binning')}
-        - Observation Start Time: {data.get('obsStartTime')}
-        - Comments: {data.get('comments')}
-
-        ================================
-        Please take necessary actions.
-        ================================
-        """
-
-        # Save the entered data as a JSON file
-        now_str = datetime.now().strftime("%Y%m%d%H%M%S")
-        file_name = f"too_request_{now_str}.json"
-        file_path = os.path.join(os.getcwd(), file_name)
-        with open(file_path, "w") as file:
-            json.dump(data, file, indent=4)
-
-        # Send email with the attachment
-        msg = Message(
-            subject="[Automated] 7DT ToO Observation Request",
-            recipients=["7dt.observation.alert@gmail.com", "takdg123@gmail.com"],  # Recipient email
-            body=email_body
-        )
-        with open(file_path, "rb") as file:
-            msg.attach(file_name, "application/json", file.read())
-
-        mail.send(msg)
-
-        # Clean up the temporary file
-        os.remove(file_path)
-
-        return jsonify({"message": "Your ToO request sent successfully!"}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @api_bp.route('/api/targets', methods=['GET'])
 def get_targets():
 
@@ -209,3 +134,78 @@ def get_spec_file():
             })
 
     return jsonify({"error": "File not found"}), 404
+
+@api_bp.route('/api/send_email', methods=['POST'])
+def send_email():
+    try:
+        data = request.json
+
+        obsmode = data.get('obsmode')
+
+        if obsmode == "Spec":
+            details1 = f"- Specmode: {data.get('selectedSpecFile')}"
+            details2 = ""
+        elif obsmode == "Deep":
+            selected_filters = ",".join(list(data.get('selectedFilters')))
+            details1 = f"- Filters: {selected_filters}"
+            details2 = f"- NumberofTelescopes: {data.get('selectedTelNumber')}"
+
+        
+        # Construct the email body
+    
+        email_body = f"""
+        ================================
+        New ToO Request Submitted
+        ================================
+
+        **Observation Information**
+        ----------------------
+        - Target Name: {data.get('target')}
+        - Right Ascension (R.A.): {data.get('ra')}
+        - Declination (Dec.): {data.get('dec')}
+        - Total Exposure Time: {data.get('exposure')} seconds
+        - Obsmode: {data.get('obsmode')}
+            {details1}
+            {details2}
+
+        **Detailed Settings**
+        --------------------
+        - Abort Current Observation: {data.get('abortObservation')}
+        - Priority: {data.get('priority')}
+        - Single Frame Exposure: {data.get('singleFrameExposure')} seconds
+        - Number of Images: {data.get('imageCount')} counts
+        - Gain: {data.get('gain')}
+        - Binning: {data.get('binning')}
+        - Observation Start Time: {data.get('obsStartTime')}
+        - Comments: {data.get('comments')}
+
+        ================================
+        Please take necessary actions.
+        ================================
+        """
+
+        # Save the entered data as a JSON file
+        now_str = datetime.now().strftime("%Y%m%d%H%M%S")
+        file_name = f"too_request_{now_str}.json"
+        file_path = os.path.join(os.getcwd(), file_name)
+        with open(file_path, "w") as file:
+            json.dump(data, file, indent=4)
+
+        # Send email with the attachment
+        msg = Message(
+            subject="[Automated] 7DT ToO Observation Request",
+            recipients=["7dt.observation.alert@gmail.com", "takdg123@gmail.com"],  # Recipient email
+            body=email_body
+        )
+        with open(file_path, "rb") as file:
+            msg.attach(file_name, "application/json", file.read())
+
+        mail.send(msg)
+
+        # Clean up the temporary file
+        os.remove(file_path)
+
+        return jsonify({"message": "Your ToO request sent successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
