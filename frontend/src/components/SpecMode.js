@@ -27,7 +27,6 @@ function SpecMode({ specFileOptions, selectedSpecFile, setSelectedSpecFile, char
                 <label className="smaller-label">Wavelength (Å):</label>
             </div>
             <div className="group-container" style={{paddingTop: '10px'}}>
-                
                 <canvas ref={chartRef} style={{ height: '50px' }} />
             </div>
 

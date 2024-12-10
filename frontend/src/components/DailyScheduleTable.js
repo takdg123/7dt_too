@@ -11,7 +11,7 @@ function DailyScheduleTable() {
     const [scheduleData, setScheduleData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false); // State to manage collapse
-    const [showRedBall, setShowRedBall] = useState(true); // State to toggle unscheduled visibility
+    const [showRedBall, setShowRedBall] = useState(false); // State to toggle unscheduled visibility
 
     // Fetch daily schedule data
     useEffect(() => {

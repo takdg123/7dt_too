@@ -7,6 +7,8 @@ from astropy.io import fits
 import json
 from glob import glob
 from datetime import datetime
+from .scripts.mainobserver import mainObserver
+from .scripts.staralt import Staralt
 
 api_bp = Blueprint('api', __name__)
 
@@ -150,7 +152,7 @@ def send_email():
             details1 = f"- Filters: {selected_filters}"
             details2 = f"- NumberofTelescopes: {data.get('selectedTelNumber')}"
 
-        
+
         # Construct the email body
     
         email_body = f"""
@@ -163,7 +165,7 @@ def send_email():
         - Target Name: {data.get('target')}
         - Right Ascension (R.A.): {data.get('ra')}
         - Declination (Dec.): {data.get('dec')}
-        - Total Exposure Time: {data.get('exposure')} seconds
+        - Total Exposure Time (seconds): {data.get('exposure')}
         - Obsmode: {data.get('obsmode')}
             {details1}
             {details2}
@@ -172,8 +174,8 @@ def send_email():
         --------------------
         - Abort Current Observation: {data.get('abortObservation')}
         - Priority: {data.get('priority')}
-        - Single Frame Exposure: {data.get('singleFrameExposure')} seconds
-        - Number of Images: {data.get('imageCount')} counts
+        - Single Frame Exposure: {data.get('singleFrameExposure')}
+        - Number of Images: {data.get('imageCount')}
         - Gain: {data.get('gain')}
         - Binning: {data.get('binning')}
         - Observation Start Time: {data.get('obsStartTime')}
@@ -209,3 +211,36 @@ def send_email():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route('/api/staralt_data', methods=['GET'])
+def get_staralt_data():
+    """
+    Provides star altitude data as JSON. 
+    Expected query params: ra, dec, (optional) objname, target_minalt, target_minmoonsep
+    Example: /api/staralt_data?ra=20.5243&dec=-20.245&objname=ABC&target_minalt=30&target_minmoonsep=40
+    """
+    try:
+        ra = float(request.args.get('ra'))
+        dec = float(request.args.get('dec'))
+        objname = request.args.get('objname', None)
+        target_minalt = float(request.args.get('target_minalt', 20))
+        target_minmoonsep = float(request.args.get('target_minmoonsep', 30))
+
+        # Create an observer instance. 
+        # Make sure you have a valid mainObserver setup. For example:
+        # observer = mainObserver()  # Adjust as necessary for your environment.
+        observer = mainObserver()
+
+        # Instantiate Staralt
+        star = Staralt(observer=observer)
+
+        # Generate star altitude data
+        star.staralt_data(ra=ra, dec=dec, objname=objname, target_minalt=target_minalt, target_minmoonsep=target_minmoonsep)
+
+        # Return the data dictionary as JSON
+        return jsonify(star.data_dict)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+

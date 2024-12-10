@@ -18,20 +18,42 @@ import {
     CircularProgress,
 } from '@mui/material';
 
+import 'chartjs-adapter-date-fns';
+
 import {
     Chart as ChartJS,
     LinearScale,
     Title,
     Tooltip,
     ScatterController,
+    LineController,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    TimeScale,
+    Legend
 } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
+
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SpecMode from './SpecMode';
 import DeepMode from './DeepMode';
 import DetailedSettings from './DetailedSettings';
 
-ChartJS.register(LinearScale, Title, Tooltip, ScatterController);
+ChartJS.register(
+    LinearScale,
+    Title,
+    Tooltip,
+    ScatterController,
+    LineController,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    TimeScale,
+    Legend,
+    annotationPlugin
+);
 
 function TargetForm() {
     const [targets, setTargets] = useState([]);
@@ -49,10 +71,12 @@ function TargetForm() {
     const [selectedSpecFile, setSelectedSpecFile] = useState('specall.specmode');
     const [selectedFilters, setSelectedFilters] = useState(['g']); // For checkboxes
     const [selectedTelNumber, setSelectedTelNumber] = useState(10); // For dropdown
+    const [staraltData, setStaraltData] = useState(null);
 
     const [isCustomTarget, setIsCustomTarget] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(true); // Collapse state for mode options
     const [isDetailCollapsed, setIsDetailCollapsed] = useState(true); // Collapse state for mode options
+    const [isStaraltCollapsed, setIsStaraltCollapsed] = useState(true); // Collapse state for mode options
     const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
     const [isLoading, setIsLoading] = useState(false);
 
@@ -69,7 +93,7 @@ function TargetForm() {
     });
 
     const chartRef = useRef(null);
-
+    const staraltChartRef = useRef(null);
     
 
     useEffect(() => {
@@ -99,6 +123,241 @@ function TargetForm() {
                 .catch((error) => console.error('Error fetching spec file data:', error));
         }
     }, [selectedSpecFile]);
+
+
+    useEffect(() => {
+        const raNum = parseFloat(ra);
+        const decNum = parseFloat(dec);
+        if (!isNaN(raNum) && !isNaN(decNum)) {
+            const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;
+            fetch(`http://127.0.0.1:5000/api/staralt_data?${query}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setStaraltData(data);
+                    console.log("Received staralt data:", data);
+                })
+                .catch((error) => console.error("Error fetching staralt data:", error));
+        }
+    }, [ra, dec, target]);
+
+    useEffect(() => {
+        if (!staraltData || !staraltChartRef.current) return;
+
+        const {
+            objname,
+            target_times, target_alts,
+            moon_times, moon_alts,
+            sun_times, sun_alts,
+            color_target,
+            tonight,
+            target_minalt,
+            target_minmoonsep
+        } = staraltData;
+
+        // Convert times to Date objects
+        const targetData = target_times.map((t, i) => ({ x: new Date(t), y: target_alts[i] }));
+        const moonData = moon_times.map((t, i) => ({ x: new Date(t), y: moon_alts[i] }));
+        const sunData = sun_times.map((t, i) => ({ x: new Date(t), y: sun_alts[i] }));
+
+        // Map color codes to CSS colors
+        const mappedColorTarget = color_target.map(c => {
+            if (c === 'r') return 'red';
+            if (c === 'k') return 'black';
+            if (c === 'g') return 'green';
+            return c; // fallback if needed
+        });
+
+        // Convert night times to Date objects
+        const sunsetNight = new Date(tonight.sunset_night);
+        const sunriseNight = new Date(tonight.sunrise_night);
+        const sunsetCivil = new Date(tonight.sunset_civil);
+        const sunriseCivil = new Date(tonight.sunrise_civil);
+
+        const targetDataset = {
+            label: 'Target',
+            data: targetData,
+            pointBackgroundColor: mappedColorTarget,
+            borderColor: 'black',
+            showLine: false,
+            pointRadius: 2
+        };
+
+        const moonDataset = {
+            label: 'Moon',
+            data: moonData,
+            borderColor: 'blue',
+            backgroundColor: 'blue',
+            showLine: false,
+            pointRadius: 1
+        };
+
+        const sunDataset = {
+            label: 'Sun',
+            data: sunData,
+            borderColor: 'red',
+            backgroundColor: 'red',
+            showLine: false,
+            pointRadius: 1
+        };
+
+        const annotations = {
+            // Vertical line at night start
+            nightStartLine: {
+                type: 'line',
+                xMin: sunsetNight.getTime(),
+                xMax: sunsetNight.getTime(),
+                borderColor: 'black',
+                borderWidth: 1,
+                label: {
+                    enabled: true,
+                    content: 'Night start',
+                    position: 'start',
+                    yAdjust: -20
+                }
+            },
+            // Vertical line at night end
+            nightEndLine: {
+                type: 'line',
+                xMin: sunriseNight.getTime(),
+                xMax: sunriseNight.getTime(),
+                borderColor: 'black',
+                borderWidth: 1,
+                label: {
+                    enabled: true,
+                    content: 'Night end',
+                    position: 'start',
+                    yAdjust: -20
+                }
+            },
+            // Shaded nighttime region
+            nightBox: {
+                type: 'box',
+                xMin: sunsetNight.getTime(),
+                xMax: sunriseNight.getTime(),
+                yMin: 0,
+                yMax: 90,
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                drawTime: 'beforeDatasetsDraw'
+            },
+            // Shaded civil twilight region
+            civilBox: {
+                type: 'box',
+                xMin: sunsetCivil.getTime(),
+                xMax: sunriseCivil.getTime(),
+                yMin: 0,
+                yMax: 90,
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                drawTime: 'beforeDatasetsDraw'
+            },
+            // Fill below minimum altitude line (red zone)
+            minAltFill: {
+                type: 'box',
+                xMin: sunsetNight.getTime(),
+                xMax: sunriseNight.getTime(),
+                yMin: 0,
+                yMax: target_minalt,
+                backgroundColor: 'rgba(255,0,0,0.3)',
+                drawTime: 'beforeDatasetsDraw',
+                label: {
+                    enabled: true,
+                    content: 'Observation limit',
+                    position: 'center',
+                    yAdjust: -50,
+                    font: { weight: 'bold', size: 12 },
+                    color: 'darkred'
+                }
+            },
+            // Add a text annotation with criteria
+            criteriaText: {
+                type: 'label',
+                xValue: new Date(sunsetNight.getTime() - 0.7 * 3600000), // 0.7 hours before night start
+                yValue: 80,
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                borderColor: 'black',
+                borderWidth: 1,
+                color: 'black',
+                font: { size: 10, weight: 'bold' },
+                textAlign: 'left',
+                content: [
+                    `Current observation criteria:`,
+                    `- Altitude > ${target_minalt} deg`,
+                    `- Moon separation > ${target_minmoonsep} deg`
+                ]
+            }
+        };
+
+        // If the chart instance exists, update data and annotations
+        if (staraltChartRef.current._chart) {
+            const chart = staraltChartRef.current._chart;
+            chart.data.datasets = [sunDataset, moonDataset, targetDataset];
+            chart.options.plugins.title.text = objname ? `Altitude of ${objname}` : 'Altitude of the Target';
+            chart.options.plugins.annotation.annotations = annotations;
+            chart.update();
+        } else {
+            // Otherwise, create a new chart
+            const ctx = staraltChartRef.current.getContext('2d');
+            const chart = new ChartJS(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [sunDataset, moonDataset, targetDataset]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow the chart to fill its container
+                    layout: {
+                        padding: 10
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time (UTC)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Altitude [deg]'
+                            },
+                            min: 0,
+                            max: 90
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: objname ? `Altitude of ${objname}` : 'Altitude of the Target',
+                        },
+                        legend: {
+                            display: true,
+                            position: 'chartArea',
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                padding: 10,
+                            }
+                        },
+                        tooltip: {
+                            mode: 'nearest',
+                            intersect: false
+                        },
+                        annotation: {
+                            annotations: annotations
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false
+                    }
+                }
+            });
+            staraltChartRef.current._chart = chart;
+        }
+    }, [staraltData, isStaraltCollapsed]);
 
     useEffect(() => {
         if (!chartRef.current) return;
@@ -149,7 +408,7 @@ function TargetForm() {
     }, [wavelengths, obsmode, isCollapsed]);
 
 
-     const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validate required fields
@@ -231,10 +490,13 @@ function TargetForm() {
         setIsDetailCollapsed(!isDetailCollapsed);
     };
 
+    const toggleStaraltCollapse = () => {
+        setIsStaraltCollapsed(!isStaraltCollapsed);
+    };
+
     const toggleDialog = () => {
         setIsDialogOpen(!isDialogOpen);
     };
-
 
     return (
         <div className="container">
@@ -369,8 +631,25 @@ function TargetForm() {
                         label={<span className="bold-label">Abort Current Observation</span>}
                     />
                 </div>
+                
+                <div className="collapse-toggle" style={{marginBottom: "0"}} onClick={toggleStaraltCollapse}>
+                    {isStaraltCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+                    <span className="collapse-text">
+                        {isStaraltCollapsed ? 'Show Star Altitude' : 'Hide Star Altitude'}
+                    </span>
+                </div>
+                {/* Display staralt plot */}
+                {!isStaraltCollapsed && (
+                    <>
+                    {staraltData && (
+                        <div style={{ width: '100%', height: '400px' }}>
+                            <canvas ref={staraltChartRef} style={{ width: '100%', height: '100%' }}></canvas>
+                        </div>
+                    )}
+                    </>
+                )}
 
-                <div className="collapse-toggle" onClick={toggleDetailCollapse}>
+                <div className="collapse-toggle"  style={{marginTop: "0"}} onClick={toggleDetailCollapse}>
                     {isDetailCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
                     <span className="collapse-text">
                         {isDetailCollapsed ? 'Show Detailed Settings' : 'Hide Detailed Settings'}
@@ -433,6 +712,7 @@ function TargetForm() {
                     </Button>
                 </DialogActions>
             </Dialog>
+
 
             {/* Loading Message */}
             {isLoading && (
