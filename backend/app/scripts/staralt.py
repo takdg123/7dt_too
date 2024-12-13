@@ -110,7 +110,7 @@ class Staralt():
         # Compute colors based on criteria
         color_target_alt = ['g' if alt > target_minalt else 'r' for alt in target_altaz.alt.value]
         color_target_moonsep = ['g' if sep > target_minmoonsep else 'r' for sep in target_moonsep.value]
-        
+
         # Incorporate the rule: before night start, always red
         color_target = []
         for t, alt_color, sep_color in zip(target_altaz.obstime, color_target_alt, color_target_moonsep):

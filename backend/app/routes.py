@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, send_from_directory, request, jsonify
 from flask_mail import Message
 from . import mail  # Import the mail instance from __init__.py
 import pandas as pd
@@ -10,10 +10,17 @@ from datetime import datetime
 from .scripts.mainobserver import mainObserver
 from .scripts.staralt import Staralt
 
-api_bp = Blueprint('api', __name__)
+api_bp = Blueprint('api', __name__, static_folder='../../frontend/build')
 
 DATA_FOLDER = os.getenv('DATA_FOLDER', './data')
 
+@api_bp.route('/')
+def serve():
+    return send_from_directory(api_bp.static_folder, 'index.html')
+
+@api_bp.route('/<path:path>')
+def static_proxy(path):
+    return send_from_directory(api_bp.static_folder, path)
 
 @api_bp.route('/api/targets', methods=['GET'])
 def get_targets():
@@ -190,6 +197,8 @@ def send_email():
         now_str = datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = f"too_request_{now_str}.json"
         file_path = os.path.join(os.getcwd(), file_name)
+        data["id"] = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
 

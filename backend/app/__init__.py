@@ -5,8 +5,7 @@ from flask_cors import CORS
 mail = Mail()  # Create an instance of Flask-Mail
 
 def create_app():
-
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../../frontend/build')
     app.config.from_object('config.Config')
     mail.init_app(app)
 

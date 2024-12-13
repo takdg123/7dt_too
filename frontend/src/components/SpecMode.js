@@ -23,16 +23,16 @@ function SpecMode({ specFileOptions, selectedSpecFile, setSelectedSpecFile, char
             </div>
 
             {/* Wavelength Chart */}
-            <div className="group-container">
-                <label className="smaller-label">Wavelength (Å):</label>
-            </div>
+            
+            <label className="smaller-label">Medium band coverage (Å):</label>
+            
             <div className="group-container" style={{paddingTop: '10px'}}>
                 <canvas ref={chartRef} style={{ height: '50px' }} />
             </div>
 
             {/* Filters Table */}
             <div className="group-container">
-                <label className="smaller-label">Filter:</label>
+                <label className="smaller-label">Broad band coverage:</label>
                 <div className="table-container">
                     <table className="filters-table">
                         <tbody>

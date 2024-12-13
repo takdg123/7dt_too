@@ -3,6 +3,7 @@ import axios from 'axios';
 import CircleIcon from '@mui/icons-material/Circle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 import '../styles/StatusTable.css';
 
 function StatusTable() {
@@ -10,7 +11,7 @@ function StatusTable() {
     const [filtInfo, setFiltInfo] = useState([]);
     const [latestReport, setLatestReport] = useState({});
     const [loading, setLoading] = useState(true);
-    const [isDetailCollapsed, setIsDetailCollapsed] = useState(true); // State for collapse/expand
+    const [isDetailCollapsed, setIsDetailCollapsed] = useState(false); // State for collapse/expand
 
     useEffect(() => {
         // Fetch data from both endpoints
@@ -32,18 +33,29 @@ function StatusTable() {
 
     const getStatusIcon = (status) => {
         const iconStyle = { width: "15px", height: "15px", margin: "0", padding: "0" };
+        const statusDetails = {
+            operational: { color: "green", detail: "Fully Operational" },
+            degraded: { color: "yellow", detail: "Degraded Performance" },
+            maintenance: { color: "red", detail: "Under Maintenance" },
+            offline: { color: "red", detail: "Offline" },
+            error: { color: "red", detail: "Error State" },
+        };
 
-        if (status === "operational") return <CircleIcon style={{ ...iconStyle, color: "green" }} />;
-        if (status === "maintanance") return <CircleIcon style={{ ...iconStyle, color: "yellow" }} />;
-        if (status === "offline") return <CircleIcon style={{ ...iconStyle, color: "red" }} />;
-        return <CircleIcon style={{ ...iconStyle, color: "gray" }} />;
+        const { color, detail } = statusDetails[status] || { color: "gray", detail: "Unknown Status" };
+
+        return (
+            <div data-tooltip-id="status-tooltip" data-tooltip-content={detail}>
+                <CircleIcon style={{ ...iconStyle, color }} />
+            </div>
+        );
     };
 
     // Determine summary status for each telescope
     const getSummaryStatus = (row) => {
         const statuses = ['Mount', 'Focuser', 'Filterwheel', 'Camera'].map((component) => row[component]);
-        if (statuses.includes('offline')) return 'offline'; // Red if any component is offline
-        if (statuses.includes('maintanance')) return 'maintanance'; // Yellow if any component is maintenance
+        if (statuses.includes('offline') || statuses.includes('error')) return 'offline'; // Red if any component is offline or error
+        if (statuses.includes('maintenance')) return 'maintenance'; // Red if any component is maintenance
+        if (statuses.includes('degraded')) return 'degraded'; // Yellow if any component is degraded
         return 'operational'; // Green if all components are operational
     };
 
@@ -128,6 +140,7 @@ function StatusTable() {
                     </p>
                 </div>
             )}
+            <ReactTooltip id="status-tooltip" place="top" type="dark" effect="float" />
         </div>
     );
 }

@@ -55,7 +55,7 @@ ChartJS.register(
     annotationPlugin
 );
 
-function TargetForm() {
+const TargetForm = () => {
     const [targets, setTargets] = useState([]);
     const [target, setTarget] = useState('');
     const [ra, setRa] = useState('');
@@ -64,6 +64,7 @@ function TargetForm() {
     const [obsmode, setObsmode] = useState('Spec'); 
     const [comments, setComments] = useState('');
     const [abortObservation, setAbortObservation] = useState(false); // Track checkbox state
+    const [requester, setRequester] = useState(''); // Track requester email
 
     const [wavelengths, setWavelengths] = useState([]);
     const [filters, setFilters] = useState([]);
@@ -76,7 +77,7 @@ function TargetForm() {
     const [isCustomTarget, setIsCustomTarget] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(true); // Collapse state for mode options
     const [isDetailCollapsed, setIsDetailCollapsed] = useState(true); // Collapse state for mode options
-    const [isStaraltCollapsed, setIsStaraltCollapsed] = useState(true); // Collapse state for mode options
+    const [isStaraltCollapsed, setIsStaraltCollapsed] = useState(false); // Collapse state for mode options
     const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
     const [isLoading, setIsLoading] = useState(false);
 
@@ -375,7 +376,7 @@ function TargetForm() {
                     scales: {
                         x: { type: 'linear', min: 3500, max: 9500, title: { display: false } },
                         y: { display: false },
-                    },
+                    },  
                     plugins: { legend: { display: false } },
                 },
                 plugins: [
@@ -387,13 +388,37 @@ function TargetForm() {
                             wavelengths.forEach((wav) => {
                                 const xMin = xScale.getPixelForValue((wav - 12.5) * 10);
                                 const xMax = xScale.getPixelForValue((wav + 12.5) * 10);
-                                ctx.fillStyle = 'green';
+                                const xCenter = xScale.getPixelForValue(wav * 10);
+                                
+                                // Create gradient
+                                const gradient = ctx.createLinearGradient(xMin, 0, xMax, 0);
+                                gradient.addColorStop(0, 'black');
+                                gradient.addColorStop(0.1, 'darkgreen');
+                                gradient.addColorStop(0.5, 'green');
+                                gradient.addColorStop(0.9, 'darkgreen');
+                                gradient.addColorStop(1, 'black');
+
+                                // Draw the gradient span
+                                ctx.fillStyle = gradient;
                                 ctx.fillRect(
                                     xMin,
                                     chart.chartArea.top,
                                     xMax - xMin,
                                     chart.chartArea.bottom - chart.chartArea.top
                                 );
+                                // Draw the center line
+                                ctx.strokeStyle = 'darkgreen'; // You can change the color as needed
+                                ctx.beginPath();
+                                ctx.moveTo(xCenter, chart.chartArea.top);
+                                ctx.lineTo(xCenter, chart.chartArea.bottom);
+                                ctx.stroke();
+                                
+                                // Draw the horizontal center line
+                                const yCenter = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                                ctx.beginPath();
+                                ctx.moveTo(xMin, yCenter);
+                                ctx.lineTo(xMax, yCenter);
+                                ctx.stroke();
                             });
                         },
                     },
@@ -411,17 +436,12 @@ function TargetForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate required fields
-        if (!target || !ra || !dec) {
-            setError('Target, R.A., and Dec. are required fields.');
-            return;
-        }
-
         setIsLoading(true);
         setError('');
 
         try {
             await axios.post('http://127.0.0.1:5000/api/send_email', {
+                requester,
                 target,
                 ra,
                 dec,
@@ -495,12 +515,45 @@ function TargetForm() {
     };
 
     const toggleDialog = () => {
+        // Validate required fields
+        if (!ra || !dec || !requester || !target) {
+            setError('Fill all required fields: Requester, Target, R.A., Dec.');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(requester)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+
+        // Check if the target is observable
+        const isObservable = staraltData.color_target.includes('g');
+        if (!isObservable) {
+            setError('The entered RA and DEC are not in any observable conditions. Check the visibility plot.');
+            return;
+        }
         setIsDialogOpen(!isDialogOpen);
     };
 
     return (
         <div className="container">
             <form onSubmit={handleSubmit} className="form">
+                <div className="group-container">
+                    <label className="default-label">Requester:</label>
+                    <TextField
+                        label="Your email address"
+                        variant="outlined"
+                        value={requester}
+                        onChange={(e) => setRequester(e.target.value)}
+                        fullWidth
+                        className="input-field"
+                        size="small"
+                        type="email"
+                        required
+                    />
+                </div>
                 <div className="group-container">
                     <label className="default-label">Target:</label>
                     <Autocomplete
@@ -509,7 +562,7 @@ function TargetForm() {
                         inputValue={target}
                         onInputChange={handleInputChange}
                         renderInput={(params) => (
-                            <TextField {...params} label="Target" variant="outlined" fullWidth size="small" />
+                            <TextField {...params} label="Target" variant="outlined" fullWidth size="small" required/>
                         )}
                         freeSolo
                         className="input-field"
@@ -526,6 +579,7 @@ function TargetForm() {
                         disabled={!isCustomTarget} 
                         className="input-field"
                         size="small"
+                        required
                     />
                 </div>
                 <div className="group-container">
@@ -539,6 +593,7 @@ function TargetForm() {
                         disabled={!isCustomTarget} 
                         className="input-field"
                         size="small"
+                        required
                     />
                 </div>
                 <div className="group-container">
@@ -628,14 +683,14 @@ function TargetForm() {
                             />
                         }
                         style={{fontWeight:'bold'}}
-                        label={<span className="bold-label">Abort Current Observation</span>}
+                        label={<span className="bold-label">Abort Current Observation?</span>}
                     />
                 </div>
-                
+
                 <div className="collapse-toggle" style={{marginBottom: "0"}} onClick={toggleStaraltCollapse}>
                     {isStaraltCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
                     <span className="collapse-text">
-                        {isStaraltCollapsed ? 'Show Star Altitude' : 'Hide Star Altitude'}
+                        {isStaraltCollapsed ? 'Show Visibility' : 'Hide Visibility'}
                     </span>
                 </div>
                 {/* Display staralt plot */}
@@ -741,7 +796,6 @@ function TargetForm() {
                     </Alert>
                 </Snackbar>
             )}
-
 
         </div>
     );

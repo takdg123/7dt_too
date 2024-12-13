@@ -27,7 +27,7 @@
         "Camera": {
             "is_active": false,
             "name": "31102",
-            "status": "maintanance",
+            "status": "maintenance",
             "timestamp": "2024-11-21",
             "description": "",
             "reported_by": "HyeonhoChoi"
