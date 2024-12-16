@@ -99,7 +99,7 @@ const TargetForm = () => {
 
     useEffect(() => {
         axios
-            .get('http://127.0.0.1:5000/api/targets')
+            .get('/api/targets')
             .then((response) => setTargets(response.data))
             .catch((error) => console.error('Error fetching targets:', error));
     }, []);
@@ -107,7 +107,7 @@ const TargetForm = () => {
     useEffect(() => {
         if (obsmode === 'Spec') {
             axios
-                .get('http://127.0.0.1:5000/api/spec-options')
+                .get('/api/spec-options')
                 .then((response) => setSpecFileOptions(response.data))
                 .catch((error) => console.error('Error fetching spec file options:', error));
         }
@@ -116,7 +116,7 @@ const TargetForm = () => {
     useEffect(() => {
         if (selectedSpecFile) {
             axios
-                .get(`http://127.0.0.1:5000/api/spec-file?file=${selectedSpecFile}`)
+                .get(`/api/spec-file?file=${selectedSpecFile}`)
                 .then((response) => {
                     setWavelengths(response.data.wavelengths);
                     setFilters(response.data.filters);
@@ -131,7 +131,7 @@ const TargetForm = () => {
         const decNum = parseFloat(dec);
         if (!isNaN(raNum) && !isNaN(decNum)) {
             const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;
-            fetch(`http://127.0.0.1:5000/api/staralt_data?${query}`)
+            fetch(`/api/staralt_data?${query}`)
                 .then((response) => response.json())
                 .then((data) => {
                     setStaraltData(data);

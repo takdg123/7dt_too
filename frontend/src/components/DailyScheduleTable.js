@@ -15,7 +15,7 @@ function DailyScheduleTable() {
 
     // Fetch daily schedule data
     useEffect(() => {
-        axios.get('http://127.0.0.1:5000/api/daily_schedule')
+        axios.get('/api/daily_schedule')
             .then((response) => {
                 setScheduleData(response.data);
                 setLoading(false);

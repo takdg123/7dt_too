@@ -15,8 +15,8 @@ function StatusTable() {
 
     useEffect(() => {
         // Fetch data from both endpoints
-        const fetchStatusData = axios.get('http://127.0.0.1:5000/api/status');
-        const fetchFiltInfoData = axios.get('http://127.0.0.1:5000/api/filtinfo');
+        const fetchStatusData = axios.get('/api/status');
+        const fetchFiltInfoData = axios.get('/api/filtinfo');
 
         Promise.all([fetchStatusData, fetchFiltInfoData])
             .then(([statusResponse, filtInfoResponse]) => {
