@@ -36,8 +36,8 @@
         }
     },
     "7DT02": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.178",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.004",
         "Mount": {
             "is_active": true,
             "name": "267",
@@ -72,8 +72,8 @@
         }
     },
     "7DT03": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.181",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.005",
         "Mount": {
             "is_active": true,
             "name": "268",
@@ -108,8 +108,8 @@
         }
     },
     "7DT04": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.179",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.006",
         "Mount": {
             "is_active": true,
             "name": "262",
@@ -144,8 +144,8 @@
         }
     },
     "7DT05": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.179",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.007",
         "Mount": {
             "is_active": true,
             "name": "271",
@@ -216,8 +216,8 @@
         }
     },
     "7DT07": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.178",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.007",
         "Mount": {
             "is_active": true,
             "name": "276",
@@ -252,8 +252,8 @@
         }
     },
     "7DT08": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.181",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.008",
         "Mount": {
             "is_active": true,
             "name": "218",
@@ -288,8 +288,8 @@
         }
     },
     "7DT09": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.176",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.008",
         "Mount": {
             "is_active": true,
             "name": "275",
@@ -324,8 +324,8 @@
         }
     },
     "7DT10": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.180",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.009",
         "Mount": {
             "is_active": true,
             "name": "248",
@@ -360,8 +360,8 @@
         }
     },
     "7DT11": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.182",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.009",
         "Mount": {
             "is_active": true,
             "name": "113",
@@ -468,8 +468,8 @@
         }
     },
     "7DT14": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.177",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.010",
         "Mount": {
             "is_active": true,
             "name": "288",
@@ -504,8 +504,8 @@
         }
     },
     "7DT15": {
-        "Status": "busy",
-        "Status_update_time": "2024-12-18T05:55:47.177",
+        "Status": "idle",
+        "Status_update_time": "2024-12-18T10:24:10.010",
         "Mount": {
             "is_active": true,
             "name": "309",
