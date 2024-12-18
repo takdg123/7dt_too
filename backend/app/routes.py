@@ -171,6 +171,7 @@ def send_email():
 
         **Observation Information**
         ----------------------
+        - Target Name: {data.get('requester')}
         - Target Name: {data.get('target')}
         - Right Ascension (R.A.): {data.get('ra')}
         - Declination (Dec.): {data.get('dec')}
