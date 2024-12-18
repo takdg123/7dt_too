@@ -10,8 +10,8 @@ import '../styles/DailyScheduleTable.css';
 function DailyScheduleTable() {
     const [scheduleData, setScheduleData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isCollapsed, setIsCollapsed] = useState(false); // State to manage collapse
     const [showRedBall, setShowRedBall] = useState(false); // State to toggle unscheduled visibility
+    const [showObserved, setShowObserved] = useState(false); // State to toggle observed visibility
 
     // Fetch daily schedule data
     useEffect(() => {
@@ -26,12 +26,12 @@ function DailyScheduleTable() {
             });
     }, []);
 
-    const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-    };
-
     const toggleRedBallVisibility = () => {
         setShowRedBall(!showRedBall);
+    };
+
+    const toggleObservedVisibility = () => {
+        setShowObserved(!showObserved);
     };
 
     const formatColumnValue = (value) => {
@@ -49,16 +49,21 @@ function DailyScheduleTable() {
         if (status === "observed") {
             return <CircleIcon style={{ ...iconStyle, color: "green" }} />;
         }
+        if (status === "scheduled") {
+            return <CircleIcon style={{ ...iconStyle, color: "#FFBF00" }} />;
+        }
         if (status === "unscheduled" && showRedBall) {
             return <CircleIcon style={{ ...iconStyle, color: "red" }} />;
         }
         return <CircleIcon style={{ ...iconStyle, color: "gray" }} />;
     };
 
-    // Filter rows based on `showRedBall` state
-    const filteredScheduleData = showRedBall
-        ? scheduleData
-        : scheduleData.filter((row) => row.status !== "unscheduled");
+    // Filter rows based on `showRedBall` and `showObserved` state
+    const filteredScheduleData = scheduleData.filter((row) => {
+        if (!showRedBall && row.status === "unscheduled") return false;
+        if (!showObserved && row.status === "observed") return false;
+        return true;
+    });
 
     if (loading) {
         return <p>Loading data...</p>;
@@ -66,65 +71,63 @@ function DailyScheduleTable() {
 
     return (
         <div className="container">
-            <h2>Daily Observing Schedule</h2>
+            <h3>Daily Observing Schedule</h3>
 
             {/* Buttons in the same line */}
             <div className="button-container">
-                <div className="collapse-toggle" onClick={toggleCollapse}>
-                    {isCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
-                    <span className="collapse-text">
-                        {isCollapsed ? 'Show Daily Schedule' : 'Hide Daily Schedule'}
-                    </span>
-                </div>
                 <div className="collapse-toggle" onClick={toggleRedBallVisibility}>
                     {showRedBall ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     <span className="collapse-text">
                         {showRedBall ? 'Hide Unscheduled' : 'Show Unscheduled'}
                     </span>
                 </div>
+                <div className="collapse-toggle" onClick={toggleObservedVisibility}>
+                    {showObserved ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    <span className="collapse-text">
+                        {showObserved ? 'Hide Observed' : 'Show Observed'}
+                    </span>
+                </div>
             </div>
 
             {/* Collapsible Content */}
-            {!isCollapsed && (
-                <div className="collapsible-content">
-                    <div className="table-container">
-                        <table className="compact-table">
-                            <thead>
-                                <tr>
-                                    <th>Object Name</th>
-                                    <th>RA</th>
-                                    <th>Dec</th>
-                                    <th>Exp Time</th>
-                                    <th>Count</th>
-                                    <th>Status</th>
-                                    <th>Start Time</th>
-                                    <th>Obs Mode</th>
-                                    <th>Spec Mode</th>
-                                    <th>nTel</th>
-                                    <th>Obj Type</th>
+            <div className="collapsible-content">
+                <div className="table-container">
+                    <table className="compact-table">
+                        <thead>
+                            <tr>
+                                <th>Object Name</th>
+                                <th>RA</th>
+                                <th>Dec</th>
+                                <th>Exp Time</th>
+                                <th>Count</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>Obs Mode</th>
+                                <th>Spec Mode</th>
+                                <th>nTel</th>
+                                <th>Obj Type</th>
+                            </tr> 
+                        </thead>
+                        <tbody>
+                            {filteredScheduleData.map((row, index) => (
+                                <tr key={index}>
+                                    <td>{row.objname}</td>
+                                    <td>{row.RA}</td>
+                                    <td>{row.De}</td>
+                                    <td>{formatColumnValue(row.exptime)}</td>
+                                    <td>{formatColumnValue(row.count)}</td>
+                                    <td>{getStatusIcon(row.status)}</td>
+                                    <td>{row.obs_starttime}</td>
+                                    <td>{row.obsmode || 'N/A'}</td>
+                                    <td>{row.specmode || 'N/A'}</td>
+                                    <td>{row.ntelescope || 'N/A'}</td>
+                                    <td>{row.objtype || 'N/A'}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filteredScheduleData.map((row, index) => (
-                                    <tr key={index}>
-                                        <td>{row.objname}</td>
-                                        <td>{row.RA}</td>
-                                        <td>{row.De}</td>
-                                        <td>{formatColumnValue(row.exptime)}</td>
-                                        <td>{formatColumnValue(row.count)}</td>
-                                        <td>{getStatusIcon(row.status)}</td>
-                                        <td>{row.obs_starttime}</td>
-                                        <td>{row.obsmode || 'N/A'}</td>
-                                        <td>{row.specmode || 'N/A'}</td>
-                                        <td>{row.ntelescope || 'N/A'}</td>
-                                        <td>{row.objtype || 'N/A'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

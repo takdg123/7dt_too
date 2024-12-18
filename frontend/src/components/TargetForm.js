@@ -40,6 +40,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SpecMode from './SpecMode';
 import DeepMode from './DeepMode';
 import DetailedSettings from './DetailedSettings';
+import CircleIcon from '@mui/icons-material/Circle';
 
 ChartJS.register(
     LinearScale,
@@ -93,6 +94,8 @@ const TargetForm = () => {
         obsStartTime: '', // Default empty
     });
 
+    const [telescopesOnline, setTelescopesOnline] = useState(0); // New state for telescope status
+
     const chartRef = useRef(null);
     const staraltChartRef = useRef(null);
     
@@ -125,6 +128,15 @@ const TargetForm = () => {
         }
     }, [selectedSpecFile]);
 
+    useEffect(() => {
+        axios
+            .get('/api/status')
+            .then((response) => {
+                const onlineTelescopes = response.data.table.filter(telescope => telescope.Status !== 'offline').length;
+                setTelescopesOnline(onlineTelescopes);
+            })
+            .catch((error) => console.error('Error fetching telescope status:', error));
+    }, []);
 
     useEffect(() => {
         const raNum = parseFloat(ra);
@@ -534,12 +546,28 @@ const TargetForm = () => {
             setError('The entered RA and DEC are not in any observable conditions. Check the visibility plot.');
             return;
         }
+
         setIsDialogOpen(!isDialogOpen);
     };
 
     return (
         <div className="container">
             <form onSubmit={handleSubmit} className="form">
+
+                <div className="observing-conditions-box">
+                    <div className="observing-conditions-header">
+                        <label className="status-text">Observing Status Overview</label>
+                    </div>
+                    <div className="observing-conditions-content">
+                        <div className="status-indicator">
+                            <span className="default-label">Telescope:</span>
+                            <CircleIcon className={`status-icon ${telescopesOnline > 0 ? 'online' : 'offline'}`} />
+                            ({telescopesOnline} online)
+                        </div>
+                        {/* Future weather condition or other status can be added here */}
+                    </div>
+                </div>
+                
                 <div className="group-container">
                     <label className="default-label">Requester:</label>
                     <TextField
@@ -796,6 +824,7 @@ const TargetForm = () => {
                     </Alert>
                 </Snackbar>
             )}
+
 
         </div>
     );

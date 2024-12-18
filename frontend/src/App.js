@@ -25,7 +25,7 @@ function App() {
                     </section>
                     
                     <header>
-                        <h1>Observatory Dashboard</h1>
+                        <h2>Observatory Dashboard</h2>
                     </header>
                     <section className="dashboard-section">
                         <StatusTable />

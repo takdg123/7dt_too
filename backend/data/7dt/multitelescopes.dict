@@ -165,7 +165,7 @@
         "Filterwheel": {
             "is_active": true,
             "name": "22243954",
-            "status": ",operational",
+            "status": "operational",
             "timestamp": "2024-12-16",
             "description": "",
             "reported_by": "HyeonhoChoi"

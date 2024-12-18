@@ -3,12 +3,13 @@ from flask_mail import Message
 from . import mail  # Import the mail instance from __init__.py
 import pandas as pd
 import os
-from astropy.io import fits
 import json
 from glob import glob
 from datetime import datetime
 from .scripts.mainobserver import mainObserver
 from .scripts.staralt import Staralt
+from astropy.table import Table
+import numpy as np
 
 api_bp = Blueprint('api', __name__, static_folder='../../frontend/build')
 
@@ -25,23 +26,19 @@ def static_proxy(path):
 @api_bp.route('/api/targets', methods=['GET'])
 def get_targets():
 
-    file_path = os.path.join(DATA_FOLDER, 'targets.fits')
+    file_path = os.path.join(DATA_FOLDER, 'targets.ascii')
     try:
-        # Open the FITS file
-        with fits.open(file_path) as hdul:
-            # Access the data from the first extension (or adjust as needed)
-            data = hdul[1].data
-            df = pd.DataFrame(data)  # Convert FITS data to a Pandas DataFrame
-            df.rename(columns={"GRBNAME":"name", "RA":"ra", "DEC": "dec"}, inplace=True)
-            selected_columns = ['name', 'ra', 'dec']
-            filtered_df = df[selected_columns]
-            return jsonify(filtered_df.to_dict(orient="records"))
+        data_table = Table.read(file_path, format='ascii')
+        selected_columns = ['Name', 'RA', 'DEC']
+        filtered_df = data_table[selected_columns]
+        filtered_df.rename_columns(['Name', 'RA', 'DEC'], ['name', 'ra', 'dec'])
+        return jsonify(filtered_df.to_pandas().to_dict(orient="records"))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/filtinfo', methods=['GET'])
 def get_filtinfo():
-    file_path = os.path.join(DATA_FOLDER, "filtinfo.data")
+    file_path = os.path.join(DATA_FOLDER, "7dt/filtinfo.dict")
     try:
         # Read the JSON-like structure from the file
         with open(file_path, 'r') as f:
@@ -62,7 +59,7 @@ def get_filtinfo():
 
 @api_bp.route('/api/status', methods=['GET'])
 def get_status():
-    file_path = os.path.join(DATA_FOLDER, "multitelescopes.data")
+    file_path = os.path.join(DATA_FOLDER, "7dt/multitelescopes.dict")
     try:
         # Read JSON-like data
         with open(file_path, 'r') as f:
@@ -74,12 +71,15 @@ def get_status():
 
         for telescope, components in multitelescopes.items():
             row = {"Telescope": telescope}
-            for component, details in components.items():
-                row[component] = details["status"]
+            row["Status"] = components.pop("Status")
+            row["Status_update_time"] = components.pop("Status_update_time")
+            for name, component in components.items():
+                row[name] = component["status"]
+                row["Instrument_update_time"] = component["timestamp"]
                 # Update latest reporter and timestamp if needed
-                if not latest_report["timestamp"] or details["timestamp"] > latest_report["timestamp"]:
-                    latest_report["reported_by"] = details["reported_by"]
-                    latest_report["timestamp"] = details["timestamp"]
+                if not latest_report["timestamp"] or component["timestamp"] > latest_report["timestamp"]:
+                    latest_report["reported_by"] = component["reported_by"]
+                    latest_report["timestamp"] = component["timestamp"]
             table_data.append(row)
 
         # Combine table data and the latest report info
@@ -91,58 +91,60 @@ def get_status():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @api_bp.route('/api/daily_schedule', methods=['GET'])
 def get_daily_schedule():
-    import os
-    import pandas as pd
     
-    # Locate the latest "Daily" file
-    data_folder = os.getenv('DATA_FOLDER', './data')
-    file_path = None
-    for file_name in os.listdir(data_folder):
-        if file_name.startswith("Daily"):
-            file_path = os.path.join(data_folder, file_name)
-            break
-
-    if not file_path:
-        return jsonify({"error": "No Daily file found"}), 404
+    file_path = os.path.join(DATA_FOLDER, "7dt/DB_Daily.ascii")
 
     try:
         # Read the file (update the parameters based on your file format)
-        schedule_df = pd.read_fwf(file_path)
-
-        # Convert the data to JSON for API response
-        schedule_json = schedule_df.to_dict(orient="records")
-        return jsonify(schedule_json)
+        data_table= pd.read_csv(file_path, delimiter=' ')
+        data_table = data_table.replace({np.nan: None})
+        return jsonify(data_table.to_dict(orient="records"))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/spec-options', methods=['GET'])
 def get_spec_options():
     data_folder = os.getenv('DATA_FOLDER', './data')
-    files = [f for f in os.listdir(data_folder) if f.endswith('.specmode')]
-    return jsonify(files)
+    specmode_folder = os.path.join(data_folder, '7dt/specmode')
+    specmode_files = []
+
+    for root, dirs, files in os.walk(specmode_folder):
+        for file in files:
+            if file.endswith('.specmode'):
+                specmode_files.append(file)
+
+    return jsonify(specmode_files)
 
 @api_bp.route('/api/spec-file', methods=['GET'])
 def get_spec_file():
-    file_name = request.args.get('file')
     data_folder = os.getenv('DATA_FOLDER', './data')
-    file_path = os.path.join(data_folder, file_name)
-    
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            data = json.load(f)  # Correctly use the loaded JSON data
-            unique_list = list(set(item for sublist in data.values() for item in sublist))  # Use `data` instead of `spec`
-            wavelengths = sorted([float(item[1:]) for item in unique_list if 'm' in item])  # Extract wavelengths
-            filters = [item for item in unique_list if 'm' not in item]  # Extract filters
-            # Return processed data
-            return jsonify({
-                "wavelengths": wavelengths,
-                "filters": filters
-            })
+    specmode_folder = os.path.join(data_folder, '7dt/specmode')
+    file_name = request.args.get('file')
 
-    return jsonify({"error": "File not found"}), 404
+    if not file_name or not file_name.endswith('.specmode'):
+        return jsonify({'error': 'Invalid file name'}), 400
+    
+    file_path = None
+    for root, dirs, files in os.walk(specmode_folder):
+        if file_name in files:
+            file_path = os.path.join(root, file_name)
+            break
+
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)  # Correctly use the loaded JSON data
+        unique_list = list(set(item.replace('w', '') for sublist in data.values() for item in sublist))  # Remove 'w' from items
+        wavelengths = sorted([float(item[1:]) for item in unique_list if 'm' in item])  # Extract wavelengths
+        filters = [item for item in unique_list if 'm' not in item]  # Extract filters
+        # Return processed data
+        return jsonify({
+            "wavelengths": wavelengths,
+            "filters": filters
+        })
 
 @api_bp.route('/api/send_email', methods=['POST'])
 def send_email():

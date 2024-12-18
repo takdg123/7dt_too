@@ -11,7 +11,7 @@ function StatusTable() {
     const [filtInfo, setFiltInfo] = useState([]);
     const [latestReport, setLatestReport] = useState({});
     const [loading, setLoading] = useState(true);
-    const [isDetailCollapsed, setIsDetailCollapsed] = useState(false); // State for collapse/expand
+    const [isDetailCollapsed, setIsDetailCollapsed] = useState(true); // State for collapse/expand
 
     useEffect(() => {
         // Fetch data from both endpoints
@@ -31,32 +31,23 @@ function StatusTable() {
             });
     }, []);
 
-    const getStatusIcon = (status) => {
+    const getStatusIcon = (status, updateTime) => {
         const iconStyle = { width: "15px", height: "15px", margin: "0", padding: "0" };
         const statusDetails = {
-            operational: { color: "green", detail: "Fully Operational" },
-            degraded: { color: "yellow", detail: "Degraded Performance" },
-            maintenance: { color: "red", detail: "Under Maintenance" },
-            offline: { color: "red", detail: "Offline" },
-            error: { color: "red", detail: "Error State" },
+            operational: { color: "green", detail: `Status: ${status}, Updated: ${updateTime}` },
+            busy: { color: "#FFBF00", detail: `Status: ${status}, Updated: ${updateTime}` },
+            offline: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
+            maintenance: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
+            error: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
         };
 
-        const { color, detail } = statusDetails[status] || { color: "gray", detail: "Unknown Status" };
+        const { color, detail } = statusDetails[status] || { color: "gray", detail: `Status: Unknown, Updated: ${updateTime}` };
 
         return (
             <div data-tooltip-id="status-tooltip" data-tooltip-content={detail}>
                 <CircleIcon style={{ ...iconStyle, color }} />
             </div>
         );
-    };
-
-    // Determine summary status for each telescope
-    const getSummaryStatus = (row) => {
-        const statuses = ['Mount', 'Focuser', 'Filterwheel', 'Camera'].map((component) => row[component]);
-        if (statuses.includes('offline') || statuses.includes('error')) return 'offline'; // Red if any component is offline or error
-        if (statuses.includes('maintenance')) return 'maintenance'; // Red if any component is maintenance
-        if (statuses.includes('degraded')) return 'degraded'; // Yellow if any component is degraded
-        return 'operational'; // Green if all components are operational
     };
 
     // Merge tableData and filtInfo based on Telescope
@@ -83,7 +74,7 @@ function StatusTable() {
     return (
         <div className="container">
             {/* Compact Summary Table */}
-            <h2>Current Status</h2>
+            <h3>Current Status</h3>
             <div className="summary-grid">
                 {[row1, row2].map((row, rowIndex) => (
                     <div key={rowIndex} className="summary-row">
@@ -91,7 +82,7 @@ function StatusTable() {
                             <div key={index} className="summary-item">
                                 <div className="summary-telescope">{telescope.Telescope}</div>
                                 <div className="summary-icon">
-                                    {getStatusIcon(getSummaryStatus(telescope))}
+                                    {getStatusIcon(telescope.Status, telescope.Status_update_time)}
                                 </div>
                             </div>
                         ))}
@@ -126,10 +117,10 @@ function StatusTable() {
                             {combinedData.map((row, index) => (
                                 <tr key={index}>
                                     <td>{row.Telescope}</td>
-                                    <td>{getStatusIcon(row.Mount)}</td>
-                                    <td>{getStatusIcon(row.Focuser)}</td>
-                                    <td>{getStatusIcon(row.Filterwheel)}</td>
-                                    <td>{getStatusIcon(row.Camera)}</td>
+                                    <td>{getStatusIcon(row.Mount, row.Instrument_update_time)}</td>
+                                    <td>{getStatusIcon(row.Focuser, row.Instrument_update_time)}</td>
+                                    <td>{getStatusIcon(row.Filterwheel, row.Instrument_update_time)}</td>
+                                    <td>{getStatusIcon(row.Camera, row.Instrument_update_time)}</td>
                                     <td>{row.Filters}</td>
                                 </tr>
                             ))}
