@@ -155,10 +155,17 @@
     align-items: flex-start;
 }
 
+.status-indicators-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
 .status-indicator {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    width: 50%
 }
 
 .status-icon {
@@ -175,6 +182,7 @@
 
 .status-text {
     font-weight: bold;
+    text-decoration: underline;
 }
 
 .local-time {

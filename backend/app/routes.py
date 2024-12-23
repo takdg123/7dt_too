@@ -117,6 +117,18 @@ def get_spec_options():
 
     return jsonify(specmode_files)
 
+@api_bp.route('/api/weather', methods=['GET'])
+def get_weather_info():
+    weather_file_path = os.path.join(DATA_FOLDER, "7dt/weatherinfo.dict")
+
+    try:
+        with open(weather_file_path, 'r') as file:
+            weather_data = json.load(file)
+        return jsonify(weather_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @api_bp.route('/api/spec-file', methods=['GET'])
 def get_spec_file():
     data_folder = os.getenv('DATA_FOLDER', './data')

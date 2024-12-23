@@ -85,6 +85,7 @@ const TargetForm = () => {
 
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    
 
     const [detailedSettings, setDetailedSettings] = useState({
         singleFrameExposure: 60, // Default 60 seconds
@@ -97,6 +98,7 @@ const TargetForm = () => {
 
     const [telescopesOnline, setTelescopesOnline] = useState(0); // New state for telescope status
     const [localTime, setLocalTime] = useState(moment().tz("America/Santiago").format('YYYY-MM-DD HH:mm:ss'));
+    const [weatherData, setWeatherData] = useState(null);
 
     const chartRef = useRef(null);
     const staraltChartRef = useRef(null);
@@ -454,6 +456,19 @@ const TargetForm = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        const fetchWeatherData = async () => {
+            try {
+                const response = await axios.get('/api/weather');
+                setWeatherData(response.data);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+            }
+        };
+
+        fetchWeatherData();
+    }, []);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -462,7 +477,7 @@ const TargetForm = () => {
         setError('');
 
         try {
-            await axios.post('http://127.0.0.1:5000/api/send_email', {
+            await axios.post('/api/send_email', {
                 requester,
                 target,
                 ra,
@@ -563,26 +578,40 @@ const TargetForm = () => {
     return (
         <div className="container">
             <form onSubmit={handleSubmit} className="form">
-
                 <div className="observing-conditions-box">
                     <div className="observing-conditions-header">
                         <label className="status-text">Observing Status Overview</label>
                     </div>
                     <div className="observing-conditions-content">
-                        <div className="status-indicator">
-                            <span className="default-label">Telescope:</span>
-                            <CircleIcon className={`status-icon ${telescopesOnline > 0 ? 'online' : 'offline'}`} />
-                            ({telescopesOnline} online)
+                        <div className="status-indicators-container">
+                            <div className="status-indicator">
+                                <span className="default-label">Telescope:</span>
+                                <div data-tooltip-id="status-tooltip" 
+                                    data-tooltip-html={`${telescopesOnline} online`}
+                                    style={{ whiteSpace: 'pre-wrap', textAlign: 'left'  }}>
+                                    <CircleIcon className={`status-icon ${telescopesOnline > 0 ? 'online' : 'offline'}`} />
+                                </div>
+                            </div>
+                            <div className="status-indicator">
+                                <span className="default-label">Weather:</span>
+                                <div data-tooltip-id="status-tooltip" 
+                                    data-tooltip-html={`Humidity: ${weatherData?.humidity ?? 'N/A'}%<br>
+                                    Rainrate: ${weatherData?.rainrate ?? 'N/A'} mm/h<br>
+                                    Skybrightness: ${weatherData?.skybrightness ?? 'N/A'} mag/arcsec²<br>
+                                    Temperature: ${weatherData?.temperature ?? 'N/A'} °C<br>
+                                    Windspeed: ${weatherData?.windspeed ?? 'N/A'} m/s`}
+                                    style={{ whiteSpace: 'pre-wrap', textAlign: 'left'  }}>
+                                    <CircleIcon className={`status-icon ${weatherData?.is_safe ? 'online' : 'offline'}`} />
+                                </div>
+                            </div>
                         </div>
                         <div className="local-time">
                             <span className="default-label">Local Time:</span>
                             <span className="time-text">{localTime}</span>
                             <span className="location-text">(Río Hurtado, Coquimbo, Chile)</span>
                         </div>
-                        {/* Future weather condition or other status can be added here */}
                     </div>
                 </div>
-                
                 <div className="group-container">
                     <label className="default-label">Requester:</label>
                     <TextField
