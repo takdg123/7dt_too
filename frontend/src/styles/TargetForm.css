@@ -135,6 +135,7 @@
     font-size: 14px; /* Optional: Adjust the font size */
     color: #333; /* Optional: Adjust the color */
 }
+
 .observing-conditions-box {
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -150,12 +151,14 @@
 
 .observing-conditions-content {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .status-indicator {
     display: flex;
     align-items: center;
+    margin-bottom: 10px;
 }
 
 .status-icon {
@@ -172,4 +175,19 @@
 
 .status-text {
     font-weight: bold;
+}
+
+.local-time {
+    display: flex;
+    align-items: center;
+}
+
+.time-text {
+    margin-left: 5px;
+    font-weight: bold;
+}
+.location-text {
+    margin-left: 5px;
+    font-style: italic;
+    color: #555;
 }

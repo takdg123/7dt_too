@@ -100,12 +100,12 @@ function DailyScheduleTable() {
                                 <th>Dec</th>
                                 <th>Exp Time</th>
                                 <th>Count</th>
-                                <th>Status</th>
                                 <th>Start Time</th>
-                                <th>Obs Mode</th>
-                                <th>Spec Mode</th>
+                                <th>Mode</th>
                                 <th>nTel</th>
                                 <th>Obj Type</th>
+                                <th>Priorty</th>
+                                <th>Status</th>
                             </tr> 
                         </thead>
                         <tbody>
@@ -116,12 +116,12 @@ function DailyScheduleTable() {
                                     <td>{row.De}</td>
                                     <td>{formatColumnValue(row.exptime)}</td>
                                     <td>{formatColumnValue(row.count)}</td>
-                                    <td>{getStatusIcon(row.status)}</td>
                                     <td>{row.obs_starttime}</td>
-                                    <td>{row.obsmode || 'N/A'}</td>
-                                    <td>{row.specmode || 'N/A'}</td>
+                                    <td>{row.specmode || row.obsmode}</td>
                                     <td>{row.ntelescope || 'N/A'}</td>
                                     <td>{row.objtype || 'N/A'}</td>
+                                    <td>{row.priority}</td>
+                                    <td>{getStatusIcon(row.status)}</td>
                                 </tr>
                             ))}
                         </tbody>

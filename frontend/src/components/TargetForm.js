@@ -41,6 +41,7 @@ import SpecMode from './SpecMode';
 import DeepMode from './DeepMode';
 import DetailedSettings from './DetailedSettings';
 import CircleIcon from '@mui/icons-material/Circle';
+import moment from 'moment-timezone';
 
 ChartJS.register(
     LinearScale,
@@ -95,6 +96,7 @@ const TargetForm = () => {
     });
 
     const [telescopesOnline, setTelescopesOnline] = useState(0); // New state for telescope status
+    const [localTime, setLocalTime] = useState(moment().tz("America/Santiago").format('YYYY-MM-DD HH:mm:ss'));
 
     const chartRef = useRef(null);
     const staraltChartRef = useRef(null);
@@ -444,6 +446,14 @@ const TargetForm = () => {
         return () => wavelengthChart?.destroy();
     }, [wavelengths, obsmode, isCollapsed]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setLocalTime(moment().tz("America/Santiago").format('YYYY-MM-DD HH:mm:ss'));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -563,6 +573,11 @@ const TargetForm = () => {
                             <span className="default-label">Telescope:</span>
                             <CircleIcon className={`status-icon ${telescopesOnline > 0 ? 'online' : 'offline'}`} />
                             ({telescopesOnline} online)
+                        </div>
+                        <div className="local-time">
+                            <span className="default-label">Local Time:</span>
+                            <span className="time-text">{localTime}</span>
+                            <span className="location-text">(Río Hurtado, Coquimbo, Chile)</span>
                         </div>
                         {/* Future weather condition or other status can be added here */}
                     </div>
