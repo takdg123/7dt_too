@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { TextField, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import axios from 'axios';
 
 const PasswordForm = ({ open, onPasswordSubmit }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     
-    const handlePasswordSubmit = (event) => {
-        event.preventDefault(); // Prevent the default form submission behavior
-        const correctPassword = process.env.REACT_APP_SDT_PASSWORD;
-        if (password === correctPassword) {
-            onPasswordSubmit();
-        } else {
-            setError('Incorrect password. Please try again.');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('/api/validate-password', { password });
+            if (response.data.valid) {
+                onPasswordSubmit();
+            } else {
+                setError('Invalid password');
+            }
+        } catch (error) {
+            setError('An error occurred while validating the password');
         }
     };
 
@@ -26,7 +31,7 @@ const PasswordForm = ({ open, onPasswordSubmit }) => {
                 <Typography variant="body1" component="p" gutterBottom>
                     Please enter the password to access the page.
                 </Typography>
-                <form onSubmit={handlePasswordSubmit}>
+                <form onSubmit={handleSubmit}>
                     <TextField
                         autoFocus
                         margin="dense"

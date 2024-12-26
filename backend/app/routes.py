@@ -158,6 +158,18 @@ def get_spec_file():
             "filters": filters
         })
 
+@api_bp.route('/api/validate-password', methods=['POST'])
+def validate_password():
+    data = request.json
+    password = data.get('password')
+    valid_password = os.getenv("SDT_ACCESS_PASSWORD")
+    print(password,valid_password,  password == valid_password)
+
+    if password == valid_password:
+        return jsonify({'valid': True}), 200
+    else:
+        return jsonify({'valid': False}), 401
+    
 @api_bp.route('/api/send_email', methods=['POST'])
 def send_email():
     try:
