@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_mail import Mail
 from flask_cors import CORS
+import os
 
 mail = Mail()  # Create an instance of Flask-Mail
 

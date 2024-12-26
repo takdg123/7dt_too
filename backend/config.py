@@ -11,7 +11,6 @@ class Config:
     MAIL_PASSWORD = os.getenv("SDT_PASSWORD")
     MAIL_DEFAULT_SENDER = ('7DT Observation Alert', os.getenv("SDT_SENDER")) 
 
-
 class ProductionConfig(Config):
     DEBUG = False
 
