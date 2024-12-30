@@ -172,7 +172,6 @@ const TargetForm = () => {
             return false;
         };
         
-
         const raNum = ra;
         const decNum = dec;
 
