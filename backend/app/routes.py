@@ -261,6 +261,12 @@ def get_staralt_data():
         
         ra = request.args.get('ra')
         dec = request.args.get('dec')
+
+        try: 
+            ra = float(ra)
+            dec = float(dec)
+        except:
+            continue
         
         objname = request.args.get('objname', None)
         target_minalt = float(request.args.get('target_minalt', 20))

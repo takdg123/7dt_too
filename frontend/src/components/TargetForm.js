@@ -175,7 +175,6 @@ const TargetForm = () => {
 
         const raNum = ra;
         const decNum = dec;
-        console.log(dec, isValidCoordinate(decNum, 'dec'),degreesRegex.test(dec), hmsRegex.test(dec))
 
         if (raNum !== '' && decNum !== '' && isValidCoordinate(raNum, 'ra') && isValidCoordinate(decNum, 'dec')) {
             const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;
