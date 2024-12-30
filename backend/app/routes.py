@@ -186,6 +186,8 @@ def send_email():
 
 
         # Construct the email body
+        data["singleExposure"] = data.get('exposure')
+        data["exposure"] = float(data.get('singleExposure'))*float(data.get('imageCount'))
     
         email_body = f"""
         ================================
@@ -199,6 +201,8 @@ def send_email():
         - Right Ascension (R.A.): {data.get('ra')}
         - Declination (Dec.): {data.get('dec')}
         - Total Exposure Time (seconds): {data.get('exposure')}
+        - Single Exposure Time (seconds): {data.get('singleExposure')}
+        - # of images: {data.get('imageCount')}
         - Obsmode: {data.get('obsmode')}
             {details1}
             {details2}
@@ -207,8 +211,6 @@ def send_email():
         --------------------
         - Abort Current Observation: {data.get('abortObservation')}
         - Priority: {data.get('priority')}
-        - Single Frame Exposure: {data.get('singleFrameExposure')}
-        - Number of Images: {data.get('imageCount')}
         - Gain: {data.get('gain')}
         - Binning: {data.get('binning')}
         - Observation Start Time: {data.get('obsStartTime')}
