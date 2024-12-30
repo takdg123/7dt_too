@@ -141,11 +141,19 @@ const TargetForm = () => {
     }, []);
 
     useEffect(() => {
+        const degreesRegex = /^-?\d+(\.\d+)?$/;
+        const hmsRegex = /^-?\d{1,2}:\d{2}:\d{2}(\.\d+)?$/;
         const isValidCoordinate = (coord, type) => {
-            const degreesRegex = /^-?\d+(\.\d+)?$/;
-            const hmsRegex = /^\d{1,2}:\d{2}:\d{2}(\.\d+)?$/;
             if (degreesRegex.test(coord) || hmsRegex.test(coord)) {
-                if (hmsRegex.test(coord)) {
+                if (degreesRegex.test(coord)) {
+                    const value = parseFloat(coord);
+                    if (type === 'ra' && (value < 0 || value > 360)) {
+                        return false;
+                    }
+                    if (type === 'dec' && (value < -90 || value > 90)) {
+                        return false;
+                    }
+                } else if (hmsRegex.test(coord)) {
                     const [hours, minutes, seconds] = coord.split(':').map(Number);
                     if (type === 'ra') {
                         if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds >= 60) {
@@ -157,13 +165,7 @@ const TargetForm = () => {
                         }
                     }
                 } else {
-                    const value = parseFloat(coord);
-                    if (type === 'ra' && (value < 0 || value > 360)) {
-                        return false;
-                    }
-                    if (type === 'dec' && (value < -90 || value > 90)) {
-                        return false;
-                    }
+                    return false;
                 }
                 return true;
             }
@@ -173,6 +175,7 @@ const TargetForm = () => {
 
         const raNum = ra;
         const decNum = dec;
+        console.log(dec, isValidCoordinate(decNum, 'dec'),degreesRegex.test(dec), hmsRegex.test(dec))
 
         if (raNum !== '' && decNum !== '' && isValidCoordinate(raNum, 'ra') && isValidCoordinate(decNum, 'dec')) {
             const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;

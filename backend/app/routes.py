@@ -261,7 +261,7 @@ def get_staralt_data():
         
         ra = request.args.get('ra')
         dec = request.args.get('dec')
-        print(ra, dec)
+        
         objname = request.args.get('objname', None)
         target_minalt = float(request.args.get('target_minalt', 20))
         target_minmoonsep = float(request.args.get('target_minmoonsep', 30))
