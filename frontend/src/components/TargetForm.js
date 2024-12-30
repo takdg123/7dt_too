@@ -62,7 +62,8 @@ const TargetForm = () => {
     const [target, setTarget] = useState('');
     const [ra, setRa] = useState('');
     const [dec, setDec] = useState('');
-    const [exposure, setExposure] = useState('300');
+    const [exposure, setExposure] = useState('100');
+    const [imageCount, setImageCount] = useState('3');
     const [obsmode, setObsmode] = useState('Spec'); 
     const [comments, setComments] = useState('');
     const [abortObservation, setAbortObservation] = useState(false); // Track checkbox state
@@ -86,10 +87,7 @@ const TargetForm = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     
-
     const [detailedSettings, setDetailedSettings] = useState({
-        singleFrameExposure: 60, // Default 60 seconds
-        imageCount: 5, // Default exposure time / 60
         priority: 50, // Default 50
         gain: 2750, // Default 2750
         binning: 1, // Default 1
@@ -143,23 +141,56 @@ const TargetForm = () => {
     }, []);
 
     useEffect(() => {
-        const raNum = parseFloat(ra);
-        const decNum = parseFloat(dec);
-        if (!isNaN(raNum) && !isNaN(decNum)) {
+        const isValidCoordinate = (coord, type) => {
+            const degreesRegex = /^-?\d+(\.\d+)?$/;
+            const hmsRegex = /^\d{1,2}:\d{2}:\d{2}(\.\d+)?$/;
+            if (degreesRegex.test(coord) || hmsRegex.test(coord)) {
+                if (hmsRegex.test(coord)) {
+                    const [hours, minutes, seconds] = coord.split(':').map(Number);
+                    if (type === 'ra') {
+                        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds >= 60) {
+                            return false;
+                        }
+                    } else if (type === 'dec') {
+                        if (hours < -90 || hours > 90 || minutes < 0 || minutes > 59 || seconds < 0 || seconds >= 60) {
+                            return false;
+                        }
+                    }
+                } else {
+                    const value = parseFloat(coord);
+                    if (type === 'ra' && (value < 0 || value > 360)) {
+                        return false;
+                    }
+                    if (type === 'dec' && (value < -90 || value > 90)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        };
+        
+
+        const raNum = ra;
+        const decNum = dec;
+
+        if (raNum !== '' && decNum !== '' && isValidCoordinate(raNum, 'ra') && isValidCoordinate(decNum, 'dec')) {
             const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;
             fetch(`/api/staralt_data?${query}`)
                 .then((response) => response.json())
                 .then((data) => {
                     setStaraltData(data);
-                    console.log("Received staralt data:", data);
                 })
                 .catch((error) => console.error("Error fetching staralt data:", error));
+        } else {
+            setStaraltData(null);
+            staraltChartRef.current=false;
         }
     }, [ra, dec, target]);
 
     useEffect(() => {
-        if (!staraltData || !staraltChartRef.current) return;
-
+        if (!staraltData || !staraltChartRef.current || staraltData.error) return;
+        
         const {
             objname,
             target_times, target_alts,
@@ -483,10 +514,10 @@ const TargetForm = () => {
                 ra,
                 dec,
                 exposure,
+                imageCount,
                 obsmode,
                 comments,
                 abortObservation,
-                ...detailedSettings,
                 ...(obsmode === 'Deep' && { selectedFilters, selectedTelNumber }),
                 ...(obsmode === 'Spec' && { selectedSpecFile })
             });
@@ -512,16 +543,6 @@ const TargetForm = () => {
             setDec('');
             setIsCustomTarget(true);
         }
-    };
-
-    const handleExposureChange = (newExposure) => {
-        const { imageCount } = detailedSettings;
-        const newSingleFrameExposure = newExposure / imageCount;
-        setDetailedSettings((prev) => ({
-            ...prev,
-            singleFrameExposure: newSingleFrameExposure,
-        }));
-        setExposure(newExposure);
     };
 
     const handleBlur = () => {
@@ -640,6 +661,7 @@ const TargetForm = () => {
                         className="input-field"
                     />
                 </div>
+            
                 <div className="group-container">
                     <label className="default-label">R.A.:</label>
                     <TextField
@@ -669,12 +691,12 @@ const TargetForm = () => {
                     />
                 </div>
                 <div className="group-container">
-                    <label className="default-label">Exposure:</label>
+                    <label className="default-label exposure-label">Exposure:</label>
                     <TextField
-                        label="seconds"
+                        label="Single exposure:"
                         variant="outlined"
                         value={exposure}
-                        onChange={(e) => handleExposureChange(e.target.value || 0)}
+                        onChange={(e) => setExposure(e.target.value)}
                         fullWidth
                         className="input-field"
                         size="small"
@@ -684,6 +706,24 @@ const TargetForm = () => {
                             step: 0.1, 
                         }}
                     />
+                    <span>X</span>
+                    <TextField
+                        label="Number of images:"
+                        variant="outlined"
+                        value={imageCount}
+                        onChange={(e) => setImageCount(e.target.value)}
+                        fullWidth
+                        className="input-field"
+                        size="small"
+                        type="number"
+                        onBlur={handleBlur}
+                        inputProps={{
+                            step: 0.1, 
+                        }}
+                    />
+                </div>
+                <div className="group-container">
+                    <span className="total-exposure">Total Exposure Time: {(exposure * imageCount)} seconds</span>
                 </div>
                 <div className="group-container" style={{justifyContent: 'space-between'}}>
                     <label className="default-label">ObsMode:</label>
@@ -788,8 +828,6 @@ const TargetForm = () => {
                         <DetailedSettings
                             detailedSettings={detailedSettings}
                             setDetailedSettings={setDetailedSettings}
-                            exposure={exposure}
-                            setExposure={setExposure}
                         />
                     </>
                 )}
@@ -810,7 +848,9 @@ const TargetForm = () => {
                     <p><strong>Target:</strong> {target}</p>
                     <p><strong>R.A.:</strong> {ra}</p>
                     <p><strong>Dec.:</strong> {dec}</p>
-                    <p><strong>Exposure:</strong> {exposure} seconds</p>
+                    <p><strong>Total Exposure:</strong> {exposure*imageCount} seconds</p>
+                    <p><strong>Single Exposure:</strong> {exposure} seconds</p>
+                    <p><strong># of Images:</strong> {imageCount}</p>
                     <p>
                         <strong>ObsMode:</strong> {obsmode}{" "}
                         {obsmode === "Spec" && `(${selectedSpecFile})`}
@@ -818,8 +858,6 @@ const TargetForm = () => {
                     </p>
                     <p><strong>Comments:</strong> {comments}</p>
                     <p><strong>Abort Current Observation:</strong> {abortObservation ? 'Yes' : 'No'}</p>
-                    <p><strong>Single Frame Exposure:</strong> {detailedSettings.singleFrameExposure} seconds</p>
-                    <p><strong># of Images:</strong> {detailedSettings.imageCount}</p>
                     <p><strong>Priority:</strong> {detailedSettings.priority}</p>
                     <p><strong>Gain:</strong> {detailedSettings.gain}</p>
                     <p><strong>Binning:</strong> {detailedSettings.binning}</p>

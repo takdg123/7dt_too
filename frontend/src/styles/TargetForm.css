@@ -199,3 +199,14 @@
     font-style: italic;
     color: #555;
 }
+
+
+.total-exposure {
+    font-weight: bold;
+    color: #818181;
+    width: 100%;
+    text-align: center;
+}
+.exposure-label {
+    margin-right: 30px;
+}

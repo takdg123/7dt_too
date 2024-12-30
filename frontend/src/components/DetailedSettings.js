@@ -1,11 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button,TextField, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import '../styles/ColOptions.css';
 
-function DetailedSettings({ detailedSettings, setDetailedSettings, exposure, setExposure }) {
+function DetailedSettings({ detailedSettings, setDetailedSettings }) {
     const defaultValues = {
-        singleFrameExposure: 60,
-        imageCount: 5,
         priority: 50,
         gain: 2750,
         binning: 1,
@@ -13,8 +11,6 @@ function DetailedSettings({ detailedSettings, setDetailedSettings, exposure, set
     };
 
     const {
-        singleFrameExposure,
-        imageCount,
         priority,
         gain,
         binning,
@@ -30,45 +26,10 @@ function DetailedSettings({ detailedSettings, setDetailedSettings, exposure, set
 
     const handleReset = () => {
         setDetailedSettings(defaultValues);
-        setExposure(defaultValues.singleFrameExposure * defaultValues.imageCount);
     };
-
-    // Automatically calculate `exposure` based on `singleFrameExposure` and `imageCount`
-    useEffect(() => {
-        const calculatedExposure = singleFrameExposure * imageCount;
-        if (exposure !== calculatedExposure) {
-            setExposure(calculatedExposure);
-        }
-    }, [singleFrameExposure, imageCount, setExposure, exposure]);
 
     return (
         <div className="mode-options">
-            <div className="group-container">
-                <label className="detail-label">Single Frame Exposure Time:</label>
-                <TextField
-                    value={singleFrameExposure}
-                    onChange={(e) => handleInputChange('singleFrameExposure', e.target.value)}
-                    type="number"
-                    variant="outlined"
-                    size="small"
-                    label="seconds"
-                    inputProps={{
-                        step: 0.1, 
-                    }}
-                />
-            </div>
-
-            <div className="group-container">
-                <label className="detail-label"># of Images:</label>
-                <TextField
-                    value={imageCount}
-                    onChange={(e) => handleInputChange('imageCount', parseInt(e.target.value||1))}
-                    type="number"
-                    variant="outlined"
-                    size="small"
-                    label="counts"
-                />
-            </div>
 
             <div className="group-container">
                 <label className="detail-label">Priority:</label>

@@ -163,7 +163,6 @@ def validate_password():
     data = request.json
     password = data.get('password')
     valid_password = os.getenv("SDT_ACCESS_PASSWORD")
-    print(password,valid_password,  password == valid_password)
 
     if password == valid_password:
         return jsonify({'valid': True}), 200
@@ -224,7 +223,7 @@ def send_email():
         now_str = datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = f"too_request_{now_str}.json"
         file_path = os.path.join(os.getcwd(), file_name)
-        data["id"] = datetime.now().strftime("%Y%m%d_%H%M%S")
+        #data["id"] = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
@@ -257,12 +256,14 @@ def get_staralt_data():
     Example: /api/staralt_data?ra=20.5243&dec=-20.245&objname=ABC&target_minalt=30&target_minmoonsep=40
     """
     try:
-        ra = float(request.args.get('ra'))
-        dec = float(request.args.get('dec'))
+        
+        ra = request.args.get('ra')
+        dec = request.args.get('dec')
+        print(ra, dec)
         objname = request.args.get('objname', None)
         target_minalt = float(request.args.get('target_minalt', 20))
         target_minmoonsep = float(request.args.get('target_minmoonsep', 30))
-
+        
         # Create an observer instance. 
         # Make sure you have a valid mainObserver setup. For example:
         # observer = mainObserver()  # Adjust as necessary for your environment.
