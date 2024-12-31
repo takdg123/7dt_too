@@ -10,7 +10,7 @@ def create_app():
     app.config.from_object('config.Config')
     mail.init_app(app)
 
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "https://trusted-domain.com"}})
     # Register routes
     with app.app_context():
         from .routes import api_bp

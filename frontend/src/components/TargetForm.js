@@ -85,6 +85,7 @@ const TargetForm = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const [error, setError] = useState('');
+    const [expError, setExpError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     
     const [detailedSettings, setDetailedSettings] = useState({
@@ -547,9 +548,16 @@ const TargetForm = () => {
     };
 
     const handleBlur = () => {
-        // Remove leading zeros unless they are part of a decimal number
-        const trimmedExposure = exposure.replace(/^0+(?=\d)/, '').replace(/^0*(\.\d+)/, '0$1');
-        setExposure(trimmedExposure);
+        console.log(exposure,imageCount)
+        if (exposure < 0 ) {
+            setExpError('Invalid: Exposure and Number of images cannot be negative');
+            setExposure(1);
+        } else if (imageCount < 0) { 
+            setExpError('Invalid: Exposure and Number of images cannot be negative');
+            setImageCount(1);
+        } else {
+            setExpError('');
+        }
     };
 
 
@@ -704,7 +712,8 @@ const TargetForm = () => {
                         type="number"
                         onBlur={handleBlur}
                         inputProps={{
-                            step: 0.1, 
+                            step: 1,
+                            min: 1 
                         }}
                     />
                     <span>X</span>
@@ -719,12 +728,15 @@ const TargetForm = () => {
                         type="number"
                         onBlur={handleBlur}
                         inputProps={{
-                            step: 0.1, 
+                            step: 1,
+                            min: 1 
                         }}
                     />
                 </div>
+                
                 <div className="group-container">
-                    <span className="total-exposure">Total Exposure Time: {(exposure * imageCount)} seconds</span>
+                {expError ? (<span className="total-exposure">{expError}</span>)
+                :(<span className="total-exposure">Total Exposure Time: {(exposure * imageCount)} seconds</span>)}
                 </div>
                 <div className="group-container" style={{justifyContent: 'space-between'}}>
                     <label className="default-label">ObsMode:</label>
