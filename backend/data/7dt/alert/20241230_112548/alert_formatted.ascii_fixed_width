@@ -1,0 +1,2 @@
+|            requester | objname |                 RA |                 De | exptime | count | obsmode | specmode | filter | binning | gain | priority | weight | objtype |       note | comments | is_ToO |                               id | is_observable |
+| hhchoi1022@gmail.com |  T19178 | 16.714285714285715 | 0.8490566037735938 |     100 |     3 |    Spec |  specall |      g |       1 |    1 |       50 |      1 | Request | AT2024aebb |          |      0 | d4cc898248724c80b890a423266761de |          True |

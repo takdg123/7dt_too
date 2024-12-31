@@ -1,0 +1,2 @@
+|            requester | objname |                 RA |                  De | exptime | count | obsmode | specmode | filter | ntelescopes | binning | gain | priority | weight | objtype |       note | comments | is_ToO |                               id | is_observable |
+| hhchoi1022@gmail.com |  T05216 | 121.24352331606218 | -46.698113207547166 |     100 |     3 |    Deep |  specall |  g,r,i |          10 |       1 |    1 |       50 |      1 | Request | AT2024aeyw |          |      0 | 94d19e1b5b844b73b10496bc093b17a3 |          True |
