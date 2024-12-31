@@ -4,12 +4,13 @@ from . import mail  # Import the mail instance from __init__.py
 import pandas as pd
 import os
 import json
-from glob import glob
 from datetime import datetime
 from .scripts.mainobserver import mainObserver
 from .scripts.staralt import Staralt
 from astropy.table import Table
 import numpy as np
+
+
 
 api_bp = Blueprint('api', __name__, static_folder='../../frontend/build')
 
@@ -22,6 +23,29 @@ def serve():
 @api_bp.route('/<path:path>')
 def static_proxy(path):
     return send_from_directory(api_bp.static_folder, path)
+
+@api_bp.after_request
+def add_header(response):
+    response.set_cookie(
+        'key', 
+        'value', 
+        secure=True,        # HTTPS only
+        httponly=True,      # Prevent JavaScript access
+        samesite='Lax',     # Protect against CSRF
+        max_age=3600        # Expire in 1 hour
+    )
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "  # Allow inline styles
+        "object-src 'none';"
+    )
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
 
 @api_bp.route('/api/targets', methods=['GET'])
 def get_targets():
@@ -188,7 +212,7 @@ def send_email():
         # Construct the email body
         data["singleExposure"] = data.get('exposure')
         data["exposure"] = float(data.get('singleExposure'))*float(data.get('imageCount'))
-    
+
         email_body = f"""
         ================================
         New ToO Request Submitted
@@ -225,8 +249,6 @@ def send_email():
         now_str = datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = f"too_request_{now_str}.json"
         file_path = os.path.join(os.getcwd(), file_name)
-        #data["id"] = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
 
@@ -240,10 +262,8 @@ def send_email():
             msg.attach(file_name, "application/json", file.read())
 
         mail.send(msg)
-
         # Clean up the temporary file
         os.remove(file_path)
-
         return jsonify({"message": "Your ToO request sent successfully!"}), 200
 
     except Exception as e:
