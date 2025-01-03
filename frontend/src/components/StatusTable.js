@@ -34,10 +34,11 @@ function StatusTable() {
     const getStatusIcon = (status, updateTime) => {
         const iconStyle = { width: "15px", height: "15px", margin: "0", padding: "0" };
         const statusDetails = {
+            idle: { color: "green", detail: `Status: ${status}, Updated: ${updateTime}` },
             operational: { color: "green", detail: `Status: ${status}, Updated: ${updateTime}` },
-            busy: { color: "#FFBF00", detail: `Status: ${status}, Updated: ${updateTime}` },
+            busy: { color: "blue", detail: `Status: ${status}, Updated: ${updateTime}` },
             offline: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
-            maintenance: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
+            maintenance: { color: "orange", detail: `Status: ${status}, Updated: ${updateTime}` },
             error: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
         };
 

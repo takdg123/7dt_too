@@ -47,6 +47,7 @@ def add_header(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     return response
 
+
 @api_bp.route('/api/targets', methods=['GET'])
 def get_targets():
 
