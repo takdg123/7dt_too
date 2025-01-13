@@ -9,7 +9,8 @@ from .scripts.mainobserver import mainObserver
 from .scripts.staralt import Staralt
 from astropy.table import Table
 import numpy as np
-
+from dotenv import load_dotenv
+load_dotenv()
 
 
 api_bp = Blueprint('api', __name__, static_folder='../../frontend/build')
@@ -45,6 +46,7 @@ def add_header(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
 
 
@@ -263,9 +265,20 @@ def send_email():
             msg.attach(file_name, "application/json", file.read())
 
         mail.send(msg)
+        
+        try:
+            msg = Message(
+                subject="[Automated] Your TOO Request has been Submitted",
+                recipients=[data.get('requester')],  # Recipient email
+                body=email_body
+            )
+            mail.send(msg)
+        except Exception as e:
+            print(f"Failed to send confirmation email: {e}")
+
         # Clean up the temporary file
         os.remove(file_path)
-        return jsonify({"message": "Your ToO request sent successfully!"}), 200
+        return jsonify({"message": "Your ToO request was sent successfully!"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
