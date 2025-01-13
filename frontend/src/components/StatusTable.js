@@ -133,6 +133,8 @@ function StatusTable() {
                 </div>
             )}
             <ReactTooltip id="status-tooltip" place="top" type="dark" effect="float" />
+            
+        
         </div>
     );
 }

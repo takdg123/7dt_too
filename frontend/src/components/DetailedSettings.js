@@ -8,6 +8,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
         gain: 2750,
         binning: 1,
         obsStartTime: '',
+        radius: 0,
     };
 
     const {
@@ -15,6 +16,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
         gain,
         binning,
         obsStartTime,
+        radius,
     } = detailedSettings;
 
     const handleInputChange = (field, value) => {
@@ -48,6 +50,16 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
                     value={gain}
                     onChange={(e) => handleInputChange('gain', parseInt(e.target.value||0))}
                     type="number"
+                    variant="outlined"
+                    size="small"
+                />
+            </div>
+
+            <div className="group-container">
+                <label className="detail-label">Radius:</label>
+                <TextField
+                    value={radius}
+                    onChange={(e) => handleInputChange('radius', parseInt(e.target.value||0))}
                     variant="outlined"
                     size="small"
                 />

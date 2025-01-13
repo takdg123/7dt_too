@@ -239,6 +239,7 @@ def send_email():
         - Abort Current Observation: {data.get('abortObservation')}
         - Priority: {data.get('priority')}
         - Gain: {data.get('gain')}
+        - Radius: {data.get('radius')}
         - Binning: {data.get('binning')}
         - Observation Start Time: {data.get('obsStartTime')}
         - Comments: {data.get('comments')}

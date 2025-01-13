@@ -93,6 +93,7 @@ const TargetForm = () => {
         gain: 2750, // Default 2750
         binning: 1, // Default 1
         obsStartTime: '', // Default empty
+        radius: 0, // Default 0
     });
 
     const [telescopesOnline, setTelescopesOnline] = useState(0); // New state for telescope status
@@ -520,6 +521,7 @@ const TargetForm = () => {
                 obsmode,
                 comments,
                 abortObservation,
+                ...detailedSettings,
                 ...(obsmode === 'Deep' && { selectedFilters, selectedTelNumber }),
                 ...(obsmode === 'Spec' && { selectedSpecFile })
             });
@@ -873,6 +875,7 @@ const TargetForm = () => {
                     <p><strong>Abort Current Observation:</strong> {abortObservation ? 'Yes' : 'No'}</p>
                     <p><strong>Priority:</strong> {detailedSettings.priority}</p>
                     <p><strong>Gain:</strong> {detailedSettings.gain}</p>
+                    <p><strong>Radius:</strong> {detailedSettings.radius}</p>
                     <p><strong>Binning:</strong> {detailedSettings.binning}</p>
                     <p><strong>Observation Start Time:</strong> {detailedSettings.obsStartTime}</p>
                 </DialogContent>
