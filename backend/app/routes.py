@@ -1,4 +1,4 @@
-from flask import Blueprint, send_from_directory, request, jsonify
+from flask import g, Blueprint, send_from_directory, request, jsonify
 from flask_mail import Message
 from . import mail  # Import the mail instance from __init__.py
 import pandas as pd
@@ -9,6 +9,8 @@ from .scripts.mainobserver import mainObserver
 from .scripts.staralt import Staralt
 from astropy.table import Table
 import numpy as np
+import base64
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -25,8 +27,21 @@ def serve():
 def static_proxy(path):
     return send_from_directory(api_bp.static_folder, path)
 
+def generate_nonce():
+    g.nonce = base64.b64encode(os.urandom(16)).decode('utf-8')
+
 @api_bp.after_request
 def add_header(response):
+    generate_nonce()
+    nonce = g.nonce
+    
+    with open(os.path.join(api_bp.static_folder, 'index.html')) as f:
+        content = f.read()
+
+    # Inject the nonce into the HTML content
+    content = content.replace('<script', f'<script nonce="{nonce}"')
+    content = content.replace('<link', f'<link nonce="{nonce}"')
+
     response.set_cookie(
         'key', 
         'value', 
@@ -38,9 +53,9 @@ def add_header(response):
     response.headers['Cache-Control'] = 'no-store'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Content-Security-Policy'] = (
-        "default-src 'self'; "
-        "script-src 'self'; "
-        "style-src 'self' 'unsafe-inline'; "  # Allow inline styles
+        f"default-src 'self'; "
+        f"script-src 'self' 'nonce-{nonce}'; "
+        f"style-src 'self' 'unsafe-inline' 'nonce-{nonce}'; " 
         "object-src 'none';"
     )
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
