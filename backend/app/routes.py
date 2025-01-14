@@ -23,10 +23,6 @@ DATA_FOLDER = os.getenv('DATA_FOLDER', './data')
 def serve():
     return send_from_directory(api_bp.static_folder, 'index.html')
 
-@api_bp.route('/<path:path>')
-def static_proxy(path):
-    return send_from_directory(api_bp.static_folder, path)
-
 def generate_nonce():
     g.nonce = base64.b64encode(os.urandom(16)).decode('utf-8')
 
@@ -54,8 +50,8 @@ def add_header(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Content-Security-Policy'] = (
         f"default-src 'self'; "
-        f"script-src 'self' 'nonce-{nonce}'; "
-        f"style-src 'self' 'unsafe-inline' 'nonce-{nonce}'; " 
+        f"script-src 'self'"
+        f"style-src 'self' 'unsafe-inline'" 
         "object-src 'none';"
     )
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
