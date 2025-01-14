@@ -37,9 +37,9 @@
     },
     "7DT02": {
         "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.685",
+        "Status_update_time": "2025-01-14T00:18:21.459",
         "Mount": {
-            "is_active": true,
+            "is_active": false,
             "name": "267",
             "status": "operational",
             "timestamp": "2025-01-11",
@@ -72,8 +72,8 @@
         }
     },
     "7DT03": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.687",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.732",
         "Mount": {
             "is_active": true,
             "name": "268",
@@ -108,8 +108,8 @@
         }
     },
     "7DT04": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.688",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.731",
         "Mount": {
             "is_active": true,
             "name": "262",
@@ -144,8 +144,8 @@
         }
     },
     "7DT05": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.688",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.727",
         "Mount": {
             "is_active": true,
             "name": "271",
@@ -216,8 +216,8 @@
         }
     },
     "7DT07": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.689",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.732",
         "Mount": {
             "is_active": true,
             "name": "276",
@@ -252,8 +252,8 @@
         }
     },
     "7DT08": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.690",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.728",
         "Mount": {
             "is_active": true,
             "name": "218",
@@ -288,8 +288,8 @@
         }
     },
     "7DT09": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.690",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.733",
         "Mount": {
             "is_active": true,
             "name": "275",
@@ -324,8 +324,8 @@
         }
     },
     "7DT10": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.691",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.733",
         "Mount": {
             "is_active": true,
             "name": "248",
@@ -360,8 +360,8 @@
         }
     },
     "7DT11": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.691",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.730",
         "Mount": {
             "is_active": true,
             "name": "113",
@@ -396,8 +396,8 @@
         }
     },
     "7DT12": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.692",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.734",
         "Mount": {
             "is_active": true,
             "name": "289",
@@ -432,8 +432,8 @@
         }
     },
     "7DT13": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.692",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.729",
         "Mount": {
             "is_active": true,
             "name": "311",
@@ -468,8 +468,8 @@
         }
     },
     "7DT14": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.693",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.730",
         "Mount": {
             "is_active": true,
             "name": "288",
@@ -504,8 +504,8 @@
         }
     },
     "7DT15": {
-        "Status": "idle",
-        "Status_update_time": "2025-01-13T08:35:25.694",
+        "Status": "busy",
+        "Status_update_time": "2025-01-14T02:13:06.729",
         "Mount": {
             "is_active": true,
             "name": "309",
