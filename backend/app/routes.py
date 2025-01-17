@@ -23,6 +23,10 @@ DATA_FOLDER = os.getenv('DATA_FOLDER', './data')
 def serve():
     return send_from_directory(api_bp.static_folder, 'index.html')
 
+@api_bp.route('/<path:path>')
+def static_proxy(path):
+    return send_from_directory(api_bp.static_folder, path)
+
 def generate_nonce():
     g.nonce = base64.b64encode(os.urandom(16)).decode('utf-8')
 
@@ -31,12 +35,13 @@ def add_header(response):
     generate_nonce()
     nonce = g.nonce
     
-    with open(os.path.join(api_bp.static_folder, 'index.html')) as f:
-        content = f.read()
+    # with open(os.path.join(api_bp.static_folder, 'index.html')) as f:
+    #     content = f.read()
 
-    # Inject the nonce into the HTML content
-    content = content.replace('<script', f'<script nonce="{nonce}"')
-    content = content.replace('<link', f'<link nonce="{nonce}"')
+    # # Inject the nonce into the HTML content
+    # content = content.replace('<script', f'<script nonce="{nonce}"')
+    # content = content.replace('<link', f'<link nonce="{nonce}"')
+    # content = content.replace('<style', f'<style nonce="{nonce}"')
 
     response.set_cookie(
         'key', 
@@ -50,10 +55,14 @@ def add_header(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Content-Security-Policy'] = (
         f"default-src 'self'; "
-        f"script-src 'self'"
-        f"style-src 'self' 'unsafe-inline'" 
+        f"script-src 'self' 'unsafe-inline'; "  # Added unsafe-inline
+        f"style-src 'self' 'unsafe-inline'; "   # Added unsafe-inline
+        "img-src 'self' data: blob: *; "  # Allow images from any source and data/blob URLs
+        "connect-src 'self' *; "  # Allow connections to any source
+        "font-src 'self' data: *; "  # Allow fonts from any source
         "object-src 'none';"
     )
+
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'

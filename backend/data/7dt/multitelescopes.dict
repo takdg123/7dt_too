@@ -73,7 +73,7 @@
     },
     "7DT03": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.180",
+        "Status_update_time": "2025-01-17T01:57:45.670",
         "Mount": {
             "is_active": true,
             "name": "268",
@@ -109,7 +109,7 @@
     },
     "7DT04": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.185",
+        "Status_update_time": "2025-01-17T01:57:45.673",
         "Mount": {
             "is_active": true,
             "name": "262",
@@ -144,10 +144,10 @@
         }
     },
     "7DT05": {
-        "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.183",
+        "Status": "idle",
+        "Status_update_time": "2025-01-17T00:18:06.237",
         "Mount": {
-            "is_active": true,
+            "is_active": false,
             "name": "271",
             "status": "operational",
             "timestamp": "2025-01-11",
@@ -217,7 +217,7 @@
     },
     "7DT07": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.181",
+        "Status_update_time": "2025-01-17T01:57:45.671",
         "Mount": {
             "is_active": true,
             "name": "276",
@@ -253,7 +253,7 @@
     },
     "7DT08": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.186",
+        "Status_update_time": "2025-01-17T01:57:45.672",
         "Mount": {
             "is_active": true,
             "name": "218",
@@ -289,7 +289,7 @@
     },
     "7DT09": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.184",
+        "Status_update_time": "2025-01-17T01:57:45.672",
         "Mount": {
             "is_active": true,
             "name": "275",
@@ -325,7 +325,7 @@
     },
     "7DT10": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.182",
+        "Status_update_time": "2025-01-17T01:57:45.675",
         "Mount": {
             "is_active": true,
             "name": "248",
@@ -361,7 +361,7 @@
     },
     "7DT11": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.182",
+        "Status_update_time": "2025-01-17T01:57:45.675",
         "Mount": {
             "is_active": true,
             "name": "113",
@@ -397,7 +397,7 @@
     },
     "7DT12": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.186",
+        "Status_update_time": "2025-01-17T01:57:45.674",
         "Mount": {
             "is_active": true,
             "name": "289",
@@ -433,7 +433,7 @@
     },
     "7DT13": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.183",
+        "Status_update_time": "2025-01-17T01:57:45.676",
         "Mount": {
             "is_active": true,
             "name": "311",
@@ -469,7 +469,7 @@
     },
     "7DT14": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.185",
+        "Status_update_time": "2025-01-17T01:57:45.674",
         "Mount": {
             "is_active": true,
             "name": "288",
@@ -505,7 +505,7 @@
     },
     "7DT15": {
         "Status": "busy",
-        "Status_update_time": "2025-01-14T07:43:52.181",
+        "Status_update_time": "2025-01-17T01:57:45.673",
         "Mount": {
             "is_active": true,
             "name": "309",
