@@ -8,7 +8,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
         gain: 2750,
         binning: 1,
         obsStartTime: '',
-        radius: 0,
+        radius: '',
     };
 
     const {
