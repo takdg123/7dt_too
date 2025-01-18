@@ -8,7 +8,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
         gain: 2750,
         binning: 1,
         obsStartTime: '',
-        radius: 0,
+        radius: '',
     };
 
     const {
@@ -58,6 +58,7 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
             <div className="group-container">
                 <label className="detail-label">Radius:</label>
                 <TextField
+                    label="arcmin"
                     value={radius}
                     onChange={(e) => handleInputChange('radius', parseInt(e.target.value||0))}
                     variant="outlined"

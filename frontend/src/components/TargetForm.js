@@ -704,7 +704,7 @@ const TargetForm = () => {
                 <div className="group-container">
                     <label className="default-label exposure-label">Exposure:</label>
                     <TextField
-                        label="Single exposure:"
+                        label="Single exposure (s):"
                         variant="outlined"
                         value={exposure}
                         onChange={(e) => setExposure(e.target.value)}
