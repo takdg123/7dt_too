@@ -58,13 +58,14 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
             <div className="group-container">
                 <label className="detail-label">Radius:</label>
                 <TextField
+                    label="arcmin"
                     value={radius}
                     onChange={(e) => handleInputChange('radius', parseInt(e.target.value||0))}
                     variant="outlined"
                     size="small"
                 />
+                
             </div>
-
             <div className="group-container">
                 <label className="detail-label">Binning:</label>
                 <RadioGroup

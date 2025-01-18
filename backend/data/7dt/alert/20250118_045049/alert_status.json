@@ -1,0 +1,13 @@
+{
+    "alert_type": "gmail",
+    "alert_sender": "hhchoi1022@gmail.com",
+    "is_inputted": true,
+    "is_observed": false,
+    "num_observed_targets": 0,
+    "is_matched_to_tiles": false,
+    "distance_to_tile_boundary": [
+        0.040580219552113196
+    ],
+    "update_time": "2025-01-18T04:51:05.319",
+    "key": "2533d19c54044d1f94b0c6dd8d25840e"
+}
