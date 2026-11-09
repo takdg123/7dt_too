@@ -115,3 +115,14 @@ button:hover {
 .footer a:hover {
     text-decoration: underline;
 }
+
+.tabs-container {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+.tab-panel {
+    padding: 24px;
+}

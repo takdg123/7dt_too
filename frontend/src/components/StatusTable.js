@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config';
 import CircleIcon from '@mui/icons-material/Circle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -15,8 +16,8 @@ function StatusTable() {
 
     useEffect(() => {
         // Fetch data from both endpoints
-        const fetchStatusData = axios.get('/api/status');
-        const fetchFiltInfoData = axios.get('/api/filtinfo');
+        const fetchStatusData = axios.get(`${API_BASE_URL}/api/status`);
+        const fetchFiltInfoData = axios.get(`${API_BASE_URL}/api/filtinfo`);
 
         Promise.all([fetchStatusData, fetchFiltInfoData])
             .then(([statusResponse, filtInfoResponse]) => {
@@ -32,21 +33,20 @@ function StatusTable() {
     }, []);
 
     const getStatusIcon = (status, updateTime) => {
-        const iconStyle = { width: "15px", height: "15px", margin: "0", padding: "0" };
         const statusDetails = {
-            idle: { color: "green", detail: `Status: ${status}, Updated: ${updateTime}` },
-            operational: { color: "green", detail: `Status: ${status}, Updated: ${updateTime}` },
-            busy: { color: "blue", detail: `Status: ${status}, Updated: ${updateTime}` },
-            offline: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
-            maintenance: { color: "orange", detail: `Status: ${status}, Updated: ${updateTime}` },
-            error: { color: "red", detail: `Status: ${status}, Updated: ${updateTime}` },
+            idle: { className: "status-green", detail: `Status: ${status}, Updated: ${updateTime}` },
+            operational: { className: "status-green", detail: `Status: ${status}, Updated: ${updateTime}` },
+            busy: { className: "status-blue", detail: `Status: ${status}, Updated: ${updateTime}` },
+            offline: { className: "status-red", detail: `Status: ${status}, Updated: ${updateTime}` },
+            maintenance: { className: "status-orange", detail: `Status: ${status}, Updated: ${updateTime}` },
+            error: { className: "status-red", detail: `Status: ${status}, Updated: ${updateTime}` },
         };
 
-        const { color, detail } = statusDetails[status] || { color: "gray", detail: `Status: Unknown, Updated: ${updateTime}` };
+        const { className, detail } = statusDetails[status] || { className: "status-gray", detail: `Status: Unknown, Updated: ${updateTime}` };
 
         return (
             <div data-tooltip-id="status-tooltip" data-tooltip-content={detail}>
-                <CircleIcon style={{ ...iconStyle, color }} />
+                <CircleIcon className={`status-icon-detail ${className}`} />
             </div>
         );
     };
@@ -103,7 +103,7 @@ function StatusTable() {
             {!isDetailCollapsed && (
                 <div>
                     <h3>Telescope Status and Filter Information</h3>
-                    <table border="1" cellPadding="5" cellSpacing="0" style={{ width: '100%' }}>
+                    <table border="1" cellPadding="5" cellSpacing="0" className="status-detail-table">
                         <thead>
                             <tr>
                                 <th>Telescope</th>

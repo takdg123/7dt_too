@@ -1,0 +1,23 @@
+[Unit]
+Description=7DT ToO alert folder monitor (creates too_requests rows)
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/home/7dt /var/db
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=7dt
+Environment=PYTHONPATH=/home/7dt/script/supy
+Environment="PATH=/home/7dt/miniconda3/bin:/usr/bin:/bin"
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/7dt/7dt_too/backend
+ExecStart=/home/7dt/miniconda3/bin/python /home/7dt/7dt_too/backend/app/alert_monitor.py
+Restart=always
+RestartSec=10s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=alert-monitor
+
+[Install]
+WantedBy=multi-user.target

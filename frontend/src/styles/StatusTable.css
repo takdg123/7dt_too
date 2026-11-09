@@ -119,3 +119,34 @@ table::-webkit-scrollbar-thumb {
 table::-webkit-scrollbar-thumb:hover {
     background-color: #555;
 }
+
+.status-icon-detail {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    padding: 0;
+}
+
+.status-green {
+    color: green;
+}
+
+.status-blue {
+    color: blue;
+}
+
+.status-red {
+    color: red;
+}
+
+.status-orange {
+    color: orange;
+}
+
+.status-gray {
+    color: gray;
+}
+
+.status-detail-table {
+    width: 100%;
+}

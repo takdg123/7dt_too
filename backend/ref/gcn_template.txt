@@ -1,0 +1,19 @@
+Title: [Event Name]: 7DT optical upper limits / 7DT observations
+
+Donggeun Tak (SNU ARC/SNU), Myungshin Im (SNU ARC/SNU), YoungPyo Hong (SNU ARC/SNU), Hyeonho Choi (SNU ARC/SNU), Donghwan Hyun (SNU ARC/SNU), Gregory S.H. Paek (IfA, SNU ARC/SNU), Seo-Won Chang (SNU ARC/SNU), and Ji Hoon Kim (SNU ARC/SNU) report on behalf of the 7 Dimensional Telescope (7DT) team, on behalf of the 7-Dimensional Telescope (7DT) team.
+
+We report optical follow-up observations of the [LIGO/Virgo/KAGRA/Fermi/etc.] event, [Event Name/ID] (GCN [number]), conducted with the 7-Dimensional Telescope (7DT), located in Chile.
+
+The 7DT follow-up began at [Start Time UTC] on [Date], corresponding to T0 + [time in seconds or hours], pointing to a region covering the target localization provided by [report] at RA, DEC = [RA] deg, [DEC] deg with an uncertainty of [localization error] arcseconds. 
+
+Initial observations were made with [N] units in [XX] medium-band filters as well as g-, r-, and i-band filters ([YY] filters in total).
+
+The following table summarizes (the observations and) the derived 5-sigma upper limits:
+[table]
+
+[The optical counterpart was detected in most filters.]
+[No significant transient event was identified in the preliminary result. Preliminary analysis yields 5σ limiting magnitudes in the range of [xx]–[yy] mag depending on sky brightness and airmass].
+
+Photometric flux calibration was performed using synthetic photometry based on [the Gaia DR3 XP catalog (Gaia Collaboration et al. 2022)/7DS catalog] within the AB magnitude system. Note that no extinction correction has been applied. 
+
+The 7-Dimensional Telescope (7DT), located in Chile and comprising 20 wide-field telescopes equipped with 40 medium-bandwidth (~25nm) filters, aims to detect optical counterparts of GW sources and conduct the 7-Dimensional Sky Survey (7DS) of the Southern Hemisphere. Further information about the 7DT is available at https://7ds.snu.ac.kr/ and http://gwuniverse.snu.ac.kr/.

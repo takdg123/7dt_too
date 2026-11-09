@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config';
 import CircleIcon from '@mui/icons-material/Circle'; // Material UI Circle Icon
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -13,7 +14,7 @@ function DailyScheduleTable() {
 
     // Fetch daily schedule data
     useEffect(() => {
-        axios.get('/api/daily_schedule')
+        axios.get(`${API_BASE_URL}/api/daily_schedule`)
             .then((response) => {
                 setScheduleData(response.data);
                 setLoading(false);
@@ -42,18 +43,16 @@ function DailyScheduleTable() {
     };
 
     const getStatusIcon = (status) => {
-        const iconStyle = { width: "12px", height: "12px", margin: "0", padding: "0" };
-
         if (status === "observed") {
-            return <CircleIcon style={{ ...iconStyle, color: "green" }} />;
+            return <CircleIcon className="status-icon status-observed" />;
         }
         if (status === "scheduled") {
-            return <CircleIcon style={{ ...iconStyle, color: "#FFBF00" }} />;
+            return <CircleIcon className="status-icon status-scheduled" />;
         }
         if (status === "unscheduled" && showRedBall) {
-            return <CircleIcon style={{ ...iconStyle, color: "red" }} />;
+            return <CircleIcon className="status-icon status-unscheduled" />;
         }
-        return <CircleIcon style={{ ...iconStyle, color: "gray" }} />;
+        return <CircleIcon className="status-icon status-default" />;
     };
 
     // Filter rows based on `showRedBall` and `showObserved` state

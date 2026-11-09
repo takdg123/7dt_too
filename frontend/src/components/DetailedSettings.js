@@ -64,8 +64,8 @@ function DetailedSettings({ detailedSettings, setDetailedSettings }) {
                     variant="outlined"
                     size="small"
                 />
-                
             </div>
+
             <div className="group-container">
                 <label className="detail-label">Binning:</label>
                 <RadioGroup

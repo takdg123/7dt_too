@@ -1,2 +1,0 @@
-| objname |                RA |                  De | exptime | count | obsmode | specmode | filter_ | ntelescope | binning | gain | priority | weight | objtype |     note | is_ToO |                               id | is_observable |
-|  T12838 | 354.5454545454545 | -19.528301886792452 |     100 |     3 |    Spec |  specall |       g |         10 |       1 | 2750 |       50 |      1 | Request | at2025oh |      0 | e5899dd17f0c4fd982426c39b187527a |          True |

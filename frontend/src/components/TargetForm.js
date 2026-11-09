@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config';
+import { getCsrfTokenForForm } from '../csrf';
 import '../styles/TargetForm.css';
 import {
     Autocomplete,
@@ -76,6 +78,7 @@ const TargetForm = () => {
     const [selectedFilters, setSelectedFilters] = useState(['g']); // For checkboxes
     const [selectedTelNumber, setSelectedTelNumber] = useState(10); // For dropdown
     const [staraltData, setStaraltData] = useState(null);
+    const [tileData, setTileData] = useState("");
 
     const [isCustomTarget, setIsCustomTarget] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(true); // Collapse state for mode options
@@ -106,7 +109,7 @@ const TargetForm = () => {
 
     useEffect(() => {
         axios
-            .get('/api/targets')
+            .get(`${API_BASE_URL}/api/targets`)
             .then((response) => setTargets(response.data))
             .catch((error) => console.error('Error fetching targets:', error));
     }, []);
@@ -114,7 +117,7 @@ const TargetForm = () => {
     useEffect(() => {
         if (obsmode === 'Spec') {
             axios
-                .get('/api/spec-options')
+                .get(`${API_BASE_URL}/api/spec-options`)
                 .then((response) => setSpecFileOptions(response.data))
                 .catch((error) => console.error('Error fetching spec file options:', error));
         }
@@ -123,7 +126,7 @@ const TargetForm = () => {
     useEffect(() => {
         if (selectedSpecFile) {
             axios
-                .get(`/api/spec-file?file=${selectedSpecFile}`)
+                .get(`${API_BASE_URL}/api/spec-file?file=${selectedSpecFile}`)
                 .then((response) => {
                     setWavelengths(response.data.wavelengths);
                     setFilters(response.data.filters);
@@ -134,7 +137,7 @@ const TargetForm = () => {
 
     useEffect(() => {
         axios
-            .get('/api/status')
+            .get(`${API_BASE_URL}/api/status`)
             .then((response) => {
                 const onlineTelescopes = response.data.table.filter(telescope => telescope.Status !== 'offline').length;
                 setTelescopesOnline(onlineTelescopes);
@@ -179,234 +182,341 @@ const TargetForm = () => {
 
         if (raNum !== '' && decNum !== '' && isValidCoordinate(raNum, 'ra') && isValidCoordinate(decNum, 'dec')) {
             const query = `ra=${raNum}&dec=${decNum}&objname=${encodeURIComponent(target)}&target_minalt=30&target_minmoonsep=40`;
-            fetch(`/api/staralt_data?${query}`)
+            fetch(`${API_BASE_URL}/api/staralt_data?${query}`)
                 .then((response) => response.json())
                 .then((data) => {
                     setStaraltData(data);
                 })
                 .catch((error) => console.error("Error fetching staralt data:", error));
+
+            fetch(`${API_BASE_URL}/api/tile?ra=${raNum}&dec=${decNum}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setTileData(data.tile_id);
+                })
+                .catch((error) => {
+                    console.error("Error fetching tile data:", error)
+                    setTileData("");
+                });
         } else {
             setStaraltData(null);
+            setTileData("");
             staraltChartRef.current=false;
         }
     }, [ra, dec, target]);
 
     useEffect(() => {
         if (!staraltData || !staraltChartRef.current || staraltData.error) return;
-        
+    
         const {
             objname,
-            target_times, target_alts,
-            moon_times, moon_alts,
-            sun_times, sun_alts,
+            target_times,
+            target_alts,
+            moon_times,
+            moon_alts,
             color_target,
             tonight,
             target_minalt,
-            target_minmoonsep
+            target_minmoonsep,
+            now_datetime,
         } = staraltData;
-
-        // Convert times to Date objects
-        const targetData = target_times.map((t, i) => ({ x: new Date(t), y: target_alts[i] }));
-        const moonData = moon_times.map((t, i) => ({ x: new Date(t), y: moon_alts[i] }));
-        const sunData = sun_times.map((t, i) => ({ x: new Date(t), y: sun_alts[i] }));
-
-        // Map color codes to CSS colors
-        const mappedColorTarget = color_target.map(c => {
-            if (c === 'r') return 'red';
-            if (c === 'k') return 'black';
-            if (c === 'g') return 'green';
-            return c; // fallback if needed
-        });
-
-        // Convert night times to Date objects
-        const sunsetNight = new Date(tonight.sunset_night);
-        const sunriseNight = new Date(tonight.sunrise_night);
-        const sunsetCivil = new Date(tonight.sunset_civil);
-        const sunriseCivil = new Date(tonight.sunrise_civil);
-
+    
+        const targetData = target_times.map((t, i) => ({ x: new Date(t).getTime(), y: target_alts[i] }));
+        const moonData = moon_times.map((t, i) => ({ x: new Date(t).getTime(), y: moon_alts[i] }));
+    
+        const mappedColorTarget = color_target.map((c) => (c === 'g' ? 'green' : 'red'));
+    
+        const sunsetNight = new Date(tonight.sunset_night).getTime();
+        const sunriseNight = new Date(tonight.sunrise_night).getTime();
+        const sunsetCivil = new Date(tonight.sunset_civil).getTime();
+        const sunriseCivil = new Date(tonight.sunrise_civil).getTime();
+        const currentTime = new Date(now_datetime).getTime();
+        const midNight = (sunsetNight + sunriseNight) / 2;
+    
+        let obsStartTime = null;
+        let obsEndTime = null;
+        let totalObservableHours = 0;
+        let remainingObservableHours = 0;
+    
+        const observableIndices = target_times
+            .map((t, i) => (color_target[i] === 'g' ? i : -1))
+            .filter((i) => i !== -1);
+    
+        if (observableIndices.length > 0) {
+            const startIdx = observableIndices[0];
+            const endIdx = observableIndices[observableIndices.length - 1];
+            obsStartTime = new Date(target_times[startIdx]).getTime();
+            obsEndTime = new Date(target_times[endIdx]).getTime();
+            totalObservableHours = (obsEndTime - obsStartTime) / (1000 * 3600);
+            if (currentTime < obsEndTime) {
+                remainingObservableHours =
+                    currentTime > obsStartTime
+                        ? (obsEndTime - currentTime) / (1000 * 3600)
+                        : totalObservableHours;
+            }
+        }
+    
         const targetDataset = {
             label: 'Target',
             data: targetData,
-            pointBackgroundColor: mappedColorTarget,
-            borderColor: 'black',
+            backgroundColor: mappedColorTarget,
+            borderColor: mappedColorTarget,
             showLine: false,
-            pointRadius: 2
+            pointRadius: 5,
+            pointStyle: 'star',
         };
-
+    
         const moonDataset = {
             label: 'Moon',
             data: moonData,
-            borderColor: 'blue',
             backgroundColor: 'blue',
+            borderColor: 'blue',
             showLine: false,
-            pointRadius: 1
+            pointRadius: 2,
+            pointStyle: 'circle',
         };
-
-        const sunDataset = {
-            label: 'Sun',
-            data: sunData,
-            borderColor: 'red',
-            backgroundColor: 'red',
-            showLine: false,
-            pointRadius: 1
-        };
-
+    
         const annotations = {
-            // Vertical line at night start
             nightStartLine: {
                 type: 'line',
-                xMin: sunsetNight.getTime(),
-                xMax: sunsetNight.getTime(),
+                xMin: sunsetNight,
+                xMax: sunsetNight,
                 borderColor: 'black',
-                borderWidth: 1,
+                borderWidth: 0.5,
                 label: {
                     enabled: true,
                     content: 'Night start',
-                    position: 'start',
-                    yAdjust: -20
-                }
+                    position: 'top',
+                    yAdjust: -5,
+                    color: 'black',
+                    font: { size: 10 },
+                },
             },
-            // Vertical line at night end
             nightEndLine: {
                 type: 'line',
-                xMin: sunriseNight.getTime(),
-                xMax: sunriseNight.getTime(),
+                xMin: sunriseNight,
+                xMax: sunriseNight,
                 borderColor: 'black',
-                borderWidth: 1,
+                borderWidth: 0.5,
                 label: {
                     enabled: true,
                     content: 'Night end',
-                    position: 'start',
-                    yAdjust: -20
-                }
+                    position: 'top',
+                    yAdjust: -5,
+                    color: 'black',
+                    font: { size: 10 },
+                },
             },
-            // Shaded nighttime region
             nightBox: {
                 type: 'box',
-                xMin: sunsetNight.getTime(),
-                xMax: sunriseNight.getTime(),
-                yMin: 0,
+                xMin: sunsetNight,
+                xMax: sunriseNight,
+                yMin: 10,
                 yMax: 90,
                 backgroundColor: 'rgba(0,0,0,0.3)',
-                drawTime: 'beforeDatasetsDraw'
+                drawTime: 'beforeDatasetsDraw',
             },
-            // Shaded civil twilight region
             civilBox: {
                 type: 'box',
-                xMin: sunsetCivil.getTime(),
-                xMax: sunriseCivil.getTime(),
-                yMin: 0,
+                xMin: sunsetCivil,
+                xMax: sunriseCivil,
+                yMin: 10,
                 yMax: 90,
                 backgroundColor: 'rgba(0,0,0,0.1)',
-                drawTime: 'beforeDatasetsDraw'
+                drawTime: 'beforeDatasetsDraw',
             },
-            // Fill below minimum altitude line (red zone)
             minAltFill: {
                 type: 'box',
-                xMin: sunsetNight.getTime(),
-                xMax: sunriseNight.getTime(),
+                xMin: sunsetNight,
+                xMax: sunriseNight,
                 yMin: 0,
                 yMax: target_minalt,
                 backgroundColor: 'rgba(255,0,0,0.3)',
                 drawTime: 'beforeDatasetsDraw',
+            },
+            obsLimitText: {
+                type: 'label',
+                xValue: midNight,
+                yValue: 20,
+                content: 'Observation limit',
+                color: 'darkred',
+                font: { size: 10 },
+                textAlign: 'center',
+            },
+            currentTimeLine: {
+                type: 'line',
+                xMin: currentTime,
+                xMax: currentTime,
+                borderColor: 'purple',
+                borderWidth: 1.5,
+                borderDash: [5, 5],
                 label: {
                     enabled: true,
-                    content: 'Observation limit',
-                    position: 'center',
-                    yAdjust: -50,
-                    font: { weight: 'bold', size: 12 },
-                    color: 'darkred'
-                }
+                    content: new Date(currentTime).toISOString().slice(11, 16),
+                    position: 'bottom',
+                    yAdjust: 10,
+                    color: 'purple',
+                    font: { size: 9 },
+                    backgroundColor: 'rgba(255,255,255,0.7)',
+                },
             },
-            // Add a text annotation with criteria
             criteriaText: {
                 type: 'label',
-                xValue: new Date(sunsetNight.getTime() - 0.7 * 3600000), // 0.7 hours before night start
-                yValue: 80,
-                backgroundColor: 'rgba(255,255,255,0.7)',
-                borderColor: 'black',
-                borderWidth: 1,
+                xValue: (sunsetCivil + sunriseCivil) / 2,
+                yValue: 85, // Moved down from 87 to fit within bounds
+                backgroundColor: 'transparent',
                 color: 'black',
-                font: { size: 10, weight: 'bold' },
-                textAlign: 'left',
-                content: [
-                    `Current observation criteria:`,
-                    `- Altitude > ${target_minalt} deg`,
-                    `- Moon separation > ${target_minmoonsep} deg`
-                ]
-            }
+                font: { size: 9, style: 'italic' },
+                textAlign: 'center',
+                content: `Criteria: Alt > ${target_minalt}°, Moon sep > ${target_minmoonsep}°`,
+            },
         };
-
-        // If the chart instance exists, update data and annotations
-        if (staraltChartRef.current._chart) {
-            const chart = staraltChartRef.current._chart;
-            chart.data.datasets = [sunDataset, moonDataset, targetDataset];
-            chart.options.plugins.title.text = objname ? `Altitude of ${objname}` : 'Altitude of the Target';
-            chart.options.plugins.annotation.annotations = annotations;
-            chart.update();
-        } else {
-            // Otherwise, create a new chart
-            const ctx = staraltChartRef.current.getContext('2d');
-            const chart = new ChartJS(ctx, {
+    
+        if (obsStartTime && obsEndTime) {
+            annotations.obsStartLine = {
                 type: 'line',
-                data: {
-                    datasets: [sunDataset, moonDataset, targetDataset]
+                xMin: obsStartTime,
+                xMax: obsStartTime,
+                borderColor: 'darkgreen',
+                borderWidth: 1.5,
+                borderDash: [5, 5],
+                label: {
+                    enabled: true,
+                    content: new Date(obsStartTime).toISOString().slice(11, 16),
+                    position: 'bottom',
+                    yAdjust: 10,
+                    color: 'darkgreen',
+                    font: { size: 9 },
+                    backgroundColor: 'rgba(255,255,255,0.7)',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Allow the chart to fill its container
-                    layout: {
-                        padding: 10
+            };
+            annotations.obsEndLine = {
+                type: 'line',
+                xMin: obsEndTime,
+                xMax: obsEndTime,
+                borderColor: 'darkorange',
+                borderWidth: 1.5,
+                borderDash: [5, 5],
+                label: {
+                    enabled: true,
+                    content: new Date(obsEndTime).toISOString().slice(11, 16),
+                    position: 'bottom',
+                    yAdjust: 10,
+                    color: 'darkorange',
+                    font: { size: 9 },
+                    backgroundColor: 'rgba(255,255,255,0.7)',
+                },
+            };
+        }
+    
+        const infoText = [
+            `Current Time: ${new Date(currentTime).toISOString().slice(0, 19).replace('T', ' ')} UTC`,
+            obsStartTime && obsEndTime
+                ? `Observable Period: ${new Date(obsStartTime).toISOString().slice(11, 16)} - ${new Date(obsEndTime).toISOString().slice(11, 16)} UTC`
+                : 'Target is not observable tonight',
+            ...(obsStartTime && obsEndTime
+                ? [
+                      '',
+                      `Total Observable Time: ${totalObservableHours.toFixed(1)} hours`,
+                      `Remaining Observable Time: ${remainingObservableHours.toFixed(1)} hours`,
+                  ]
+                : []),
+        ];
+    
+        annotations.infoText = {
+            type: 'label',
+            xValue: sunsetCivil + 0.2 * (sunriseCivil - sunsetCivil), // Shifted right from left edge
+            yValue: 75, // Lowered from 85 to fit within plot
+            backgroundColor: 'rgba(255,255,255,0.7)',
+            borderColor: 'black',
+            borderWidth: 1,
+            color: 'black',
+            font: { size: 9 },
+            textAlign: 'left',
+            content: infoText,
+        };
+    
+        const chartConfig = {
+            type: 'scatter',
+            data: {
+                datasets: [moonDataset, targetDataset],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 40,    // Increased for title and legend
+                        bottom: 50, // Increased for bottom labels
+                        left: 60,   // Increased for info text
+                        right: 20,  // Space for legend
                     },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'hour'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Time (UTC)'
-                            }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            displayFormats: { hour: 'MM-dd HH' },
+                            tooltipFormat: 'MM-dd HH:mm',
                         },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Altitude [deg]'
-                            },
-                            min: 0,
-                            max: 90
-                        }
-                    },
-                    plugins: {
                         title: {
                             display: true,
-                            text: objname ? `Altitude of ${objname}` : 'Altitude of the Target',
+                            text: 'UTC Time [mm-dd hh]',
                         },
-                        legend: {
-                            display: true,
-                            position: 'chartArea',
-                            labels: {
-                                boxWidth: 10,
-                                boxHeight: 10,
-                                padding: 10,
-                            }
+                        min: sunsetCivil,
+                        max: sunriseCivil,
+                        ticks: {
+                            source: 'auto',
+                            autoSkip: true,
+                            maxRotation: 45,
+                            minRotation: 45,
                         },
-                        tooltip: {
-                            mode: 'nearest',
-                            intersect: false
-                        },
-                        annotation: {
-                            annotations: annotations
-                        }
                     },
-                    interaction: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Altitude [degrees]',
+                        },
+                        min: 10,
+                        max: 90,
+                    },
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: objname ? `Altitude of ${objname}` : 'Altitude of the Target',
+                        padding: { top: 10, bottom: 10 },
+                        align: 'center',
+                    },
+                    legend: {
+                        position: 'right', // Moved to right side
+                        align: 'start',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 10,
+                            font: { size: 10 }, // Smaller font to fit
+                        },
+                    },
+                    tooltip: {
                         mode: 'nearest',
-                        intersect: false
-                    }
-                }
-            });
-            staraltChartRef.current._chart = chart;
+                        intersect: false,
+                    },
+                    annotation: {
+                        annotations,
+                    },
+                },
+            },
+        };
+    
+        if (staraltChartRef.current._chart) {
+            const chart = staraltChartRef.current._chart;
+            chart.data = chartConfig.data;
+            chart.options = chartConfig.options;
+            chart.update();
+        } else {
+            const ctx = staraltChartRef.current.getContext('2d');
+            staraltChartRef.current._chart = new ChartJS(ctx, chartConfig);
         }
     }, [staraltData, isStaraltCollapsed]);
 
@@ -493,7 +603,7 @@ const TargetForm = () => {
     useEffect(() => {
         const fetchWeatherData = async () => {
             try {
-                const response = await axios.get('/api/weather');
+                const response = await axios.get(`${API_BASE_URL}/api/weather`);
                 setWeatherData(response.data);
             } catch (error) {
                 console.error('Error fetching weather data:', error);
@@ -511,7 +621,7 @@ const TargetForm = () => {
         setError('');
 
         try {
-            await axios.post('/api/send_email', {
+            await axios.post(`${API_BASE_URL}/api/send_email`, {
                 requester,
                 target,
                 ra,
@@ -550,7 +660,6 @@ const TargetForm = () => {
     };
 
     const handleBlur = () => {
-        console.log(exposure,imageCount)
         if (exposure < 0 ) {
             setExpError('Invalid: Exposure and Number of images cannot be negative');
             setExposure(1);
@@ -601,7 +710,6 @@ const TargetForm = () => {
         const isObservable = staraltData.color_target.includes('g');
         if (!isObservable) {
             setError('The entered RA and DEC are not in any observable conditions. Check the visibility plot.');
-            return;
         }
 
         setIsDialogOpen(!isDialogOpen);
@@ -610,6 +718,10 @@ const TargetForm = () => {
     return (
         <div className="container">
             <form onSubmit={handleSubmit} className="form">
+                {/* CSRF Token - Hidden field for form-based CSRF protection */}
+                <input type="hidden" name="csrf_token" value={getCsrfTokenForForm()} />
+                <input type="hidden" name="CSRFToken" value={getCsrfTokenForForm()} />
+                <input type="hidden" name="anticsrf" value={getCsrfTokenForForm()} />
                 <div className="observing-conditions-box">
                     <div className="observing-conditions-header">
                         <label className="status-text">Observing Status Overview</label>
@@ -620,7 +732,7 @@ const TargetForm = () => {
                                 <span className="default-label">Telescope:</span>
                                 <div data-tooltip-id="status-tooltip" 
                                     data-tooltip-html={`${telescopesOnline} online`}
-                                    style={{ whiteSpace: 'pre-wrap', textAlign: 'left'  }}>
+                                    className="status-tooltip-wrapper">
                                     <CircleIcon className={`status-icon ${telescopesOnline > 0 ? 'online' : 'offline'}`} />
                                 </div>
                             </div>
@@ -632,7 +744,7 @@ const TargetForm = () => {
                                     Skybrightness: ${weatherData?.skybrightness ?? 'N/A'} mag/arcsec²<br>
                                     Temperature: ${weatherData?.temperature ?? 'N/A'} °C<br>
                                     Windspeed: ${weatherData?.windspeed ?? 'N/A'} m/s`}
-                                    style={{ whiteSpace: 'pre-wrap', textAlign: 'left'  }}>
+                                    className="status-tooltip-wrapper">
                                     <CircleIcon className={`status-icon ${weatherData?.is_safe ? 'online' : 'offline'}`} />
                                 </div>
                             </div>
@@ -738,9 +850,9 @@ const TargetForm = () => {
                 
                 <div className="group-container">
                 {expError ? (<span className="total-exposure">{expError}</span>)
-                :(<span className="total-exposure">Total Exposure Time: {(exposure * imageCount)} seconds</span>)}
+                :tileData!=="" ? (<span className="total-exposure">Tile ID: {tileData} and Total Exposure Time: {(exposure * imageCount)} seconds</span>) : (<span className="total-exposure">Total Exposure Time: {(exposure * imageCount)} seconds</span>)}
                 </div>
-                <div className="group-container" style={{justifyContent: 'space-between'}}>
+                <div className="group-container obsmode-container">
                     <label className="default-label">ObsMode:</label>
                     <RadioGroup
                         row
@@ -809,12 +921,12 @@ const TargetForm = () => {
                                 color="primary"
                             />
                         }
-                        style={{fontWeight:'bold'}}
+                        className="abort-checkbox"
                         label={<span className="bold-label">Abort Current Observation?</span>}
                     />
                 </div>
 
-                <div className="collapse-toggle" style={{marginBottom: "0"}} onClick={toggleStaraltCollapse}>
+                <div className="collapse-toggle collapse-toggle-no-margin-bottom" onClick={toggleStaraltCollapse}>
                     {isStaraltCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
                     <span className="collapse-text">
                         {isStaraltCollapsed ? 'Show Visibility' : 'Hide Visibility'}
@@ -824,14 +936,14 @@ const TargetForm = () => {
                 {!isStaraltCollapsed && (
                     <>
                     {staraltData && (
-                        <div style={{ width: '100%', height: '400px' }}>
-                            <canvas ref={staraltChartRef} style={{ width: '100%', height: '100%' }}></canvas>
+                        <div className="staralt-chart-container">
+                            <canvas ref={staraltChartRef} className="staralt-chart"></canvas>
                         </div>
                     )}
                     </>
                 )}
 
-                <div className="collapse-toggle"  style={{marginTop: "0"}} onClick={toggleDetailCollapse}>
+                <div className="collapse-toggle collapse-toggle-no-margin-top" onClick={toggleDetailCollapse}>
                     {isDetailCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
                     <span className="collapse-text">
                         {isDetailCollapsed ? 'Show Detailed Settings' : 'Hide Detailed Settings'}

@@ -1,0 +1,17 @@
+[Unit]
+Description=uWSGI instance to serve 7DT ToO wweb application
+Wants=alert-monitor.service
+After=network.target alert-monitor.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/7dt/7dt_too/backend
+Environment="PATH=/home/7dt/miniconda3/bin"
+Environment="PYTHONPATH=/home/7dt/script/supy"
+ExecStart=/home/7dt/miniconda3/bin/uwsgi --ini wsgi.ini
+
+[Install]
+WantedBy=multi-user.target
+
+

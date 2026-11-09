@@ -26,8 +26,8 @@ function SpecMode({ specFileOptions, selectedSpecFile, setSelectedSpecFile, char
             
             <label className="smaller-label">Medium band coverage (Å):</label>
             
-            <div className="group-container" style={{paddingTop: '10px'}}>
-                <canvas ref={chartRef} style={{ height: '50px' }} />
+            <div className="group-container chart-container">
+                <canvas ref={chartRef} className="wavelength-chart" />
             </div>
 
             {/* Filters Table */}

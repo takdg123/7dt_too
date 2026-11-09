@@ -11,6 +11,7 @@ __pycache__/
 **/._.DS_Store
 .env
 *.code-workspace
+.cache/
 
 # Distribution / packaging
 .Python
@@ -29,6 +30,7 @@ wheels/
 .installed.cfg
 *.egg
 *.ini
+data/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -115,3 +117,18 @@ dmypy.json
 
 # VS Code
 .vscode/
+
+# Secrets: TLS keys and their backups never belong in git
+*.key
+*.pem
+*.key.backup-*
+*.pem.backup-*
+backend/.env
+frontend/.env
+
+# Generated or machine-local
+frontend/node_modules/
+frontend/build/
+backend/too_backend.log*
+backend/*.sock
+backend/test.ipynb

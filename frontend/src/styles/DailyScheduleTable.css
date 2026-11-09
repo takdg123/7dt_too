@@ -72,3 +72,26 @@
 .collapse-text {
     margin-left: 5px;
 }
+
+.status-icon {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+    padding: 0;
+}
+
+.status-observed {
+    color: green;
+}
+
+.status-scheduled {
+    color: #FFBF00;
+}
+
+.status-unscheduled {
+    color: red;
+}
+
+.status-default {
+    color: gray;
+}

@@ -210,3 +210,34 @@
 .exposure-label {
     margin-right: 30px;
 }
+
+.status-tooltip-wrapper {
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.obsmode-container {
+    justify-content: space-between;
+}
+
+.collapse-toggle-no-margin-bottom {
+    margin-bottom: 0;
+}
+
+.collapse-toggle-no-margin-top {
+    margin-top: 0;
+}
+
+.abort-checkbox {
+    font-weight: bold;
+}
+
+.staralt-chart-container {
+    width: 100%;
+    height: 400px;
+}
+
+.staralt-chart {
+    width: 100%;
+    height: 100%;
+}
