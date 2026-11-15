@@ -44,7 +44,7 @@ def parse_notice(topic: str, value: bytes, allow_test: bool = False) -> Optional
         raise ParseError(f"{topic}: {type(e).__name__}: {e}") from e
 
 
-def _time(text: str) -> datetime:
+def parse_time(text: str) -> datetime:
     # Python 3.10's fromisoformat takes only 3 or 6 fractional digits; GCN sends 1 to 6.
     text = re.sub(r"\.(\d{1,6})\d*", lambda m: "." + m.group(1).ljust(6, "0"), text.strip().replace("Z", "+00:00"))
     t = datetime.fromisoformat(text)
@@ -81,7 +81,7 @@ def parse_gw(topic: str, value: bytes, allow_test: bool) -> Optional[Notice]:
         return None
     kind = GW_KINDS[d["alert_type"]]
     if kind is NoticeKind.RETRACTION:
-        return Notice(Alert(Stream.GW, "LVK", event_id, kind, _time(d["time_created"]), raw_topic=topic))
+        return Notice(Alert(Stream.GW, "LVK", event_id, kind, parse_time(d["time_created"]), raw_topic=topic))
 
     event = d["event"]
     if event["group"] != "CBC":
@@ -96,7 +96,7 @@ def parse_gw(topic: str, value: bytes, allow_test: bool) -> Optional[Notice]:
         source="LVK",
         event_id=event_id,
         kind=kind,
-        event_time=_time(event["time"]),
+        event_time=parse_time(event["time"]),
         area90_deg2=area90,
         distance_mpc=distance,
         far_per_year=float(event["far"]) * SECONDS_PER_YEAR,
@@ -124,7 +124,7 @@ def parse_ep(topic: str, value: bytes, allow_test: bool) -> Optional[Notice]:
     err = d["ra_dec_error"]
     radius = _radius(err[0] if isinstance(err, list) else err)
     containment = float(d.get("containment_probability") or 0.9)
-    alert = Alert(Stream.EP, "EP/WXT", str(event_id), NoticeKind.INITIAL, _time(d["trigger_time"]), ra, dec,
+    alert = Alert(Stream.EP, "EP/WXT", str(event_id), NoticeKind.INITIAL, parse_time(d["trigger_time"]), ra, dec,
                   error_radius_deg=_rayleigh_to_90(radius, containment), raw_topic=topic)
     return Notice(alert)
 
@@ -148,7 +148,7 @@ def parse_icecube(topic: str, value: bytes, allow_test: bool) -> Optional[Notice
     if source is None:
         return None
     event_id = d["event_name"][0] if isinstance(d["event_name"], list) else d["event_name"]
-    event_time = _time(d["trigger_time"])
+    event_time = parse_time(d["trigger_time"])
     if kind is NoticeKind.RETRACTION:
         return Notice(Alert(Stream.NEUTRINO, source, event_id, kind, event_time, raw_topic=topic))
     ra, dec = _ra_dec(d["ra"], d["dec"])
@@ -202,7 +202,7 @@ def parse_svom(topic: str, value: bytes, allow_test: bool) -> Optional[Notice]:
     radius = _radius(_find(coords, "Position2D/Error2Radius").text)
     inference = next((e for e in root.iter() if _local(e.tag) == "Inference"), None)
     p_astro = inference.get("probability") if inference is not None else None
-    alert = Alert(Stream.GRB, source, params["Burst_Id"], kind, _time(_find(coords, "Time/TimeInstant/ISOTime").text),
+    alert = Alert(Stream.GRB, source, params["Burst_Id"], kind, parse_time(_find(coords, "Time/TimeInstant/ISOTime").text),
                   ra, dec, error_radius_deg=radius, p_astro=None if p_astro is None else float(p_astro),
                   raw_topic=topic)
     return Notice(alert)
