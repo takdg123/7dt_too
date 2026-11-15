@@ -1,0 +1,22 @@
+[Unit]
+Description=7DT automatic ToO trigger (GCN listener; shadow mode unless TRIGGER_LIVE=1)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=7dt
+WorkingDirectory=/home/7dt/7dt_too
+# GCN_CLIENT_ID, GCN_CLIENT_SECRET, and optionally TRIGGER_OPERATOR_EMAILS, TRIGGER_REQUESTER, TRIGGER_LIVE=1
+EnvironmentFile=/home/7dt/.config/too-trigger.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/7dt/too-trigger-venv/bin/python -m trigger.listener
+Restart=always
+RestartSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=too-trigger
+
+[Install]
+WantedBy=multi-user.target
