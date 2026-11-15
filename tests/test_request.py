@@ -82,6 +82,13 @@ def test_positive_dec_has_no_plus_sign():
     assert p["abortObservation"] is False
 
 
+@pytest.mark.parametrize("ra_deg", [0.0, 359.99999, 180.0])
+def test_ra_stays_within_the_forms_hour_range(ra_deg):
+    alert = Alert(Stream.GRB, "SVOM/MXT", "sb1", NoticeKind.INITIAL, T0, ra_deg, -30.0, 0.05)
+    ra = request.to_form_payload(alert, decide(alert, Visibility(0.0, 1.0)))["ra"]
+    assert FORM_SEXAGESIMAL.match(ra) and int(ra.split(":")[0]) <= 23
+
+
 def test_submit_refuses_in_shadow_mode(smtp):
     payload = request.to_form_payload(grb_alert(), decide(grb_alert(), Visibility(0.0, 1.0)))
     with pytest.raises(request.NotLive):

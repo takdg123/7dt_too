@@ -30,10 +30,12 @@ class NotLive(RuntimeError):
 
 
 def _sexagesimal(ra_deg: float, dec_deg: float) -> tuple[str, str]:
-    # No leading "+" on dec: the form only accepts -?DD:MM:SS(.s).
-    ra = Angle(ra_deg, u.deg).to_string(unit=u.hourangle, sep=":", precision=2, pad=True)
+    # The form accepts only -?HH:MM:SS(.s) with HH <= 23 and no leading "+", so round before formatting
+    # (359.99999 deg would otherwise print as 24:00:00.00).
+    ra_seconds = round(ra_deg / 15.0 * 3600.0, 2) % 86400.0
+    ra = Angle(ra_seconds / 3600.0, u.hourangle).to_string(unit=u.hourangle, sep=":", precision=2, pad=True)
     dec = Angle(dec_deg, u.deg).to_string(unit=u.deg, sep=":", precision=1, pad=True)
-    return ra, dec
+    return str(ra), str(dec)
 
 
 def _comments(decision: Decision) -> str:
